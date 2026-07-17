@@ -47,6 +47,7 @@ regexTarget = "match"
 regexes = [
 #    '''^u568294@u568294\.your-storagebox\.de$''',
     '''^me@davud\.io$''',
+    '''^git@github\.com$''',  # flux gotk-sync.yaml URL, clone instructions
 ]
 
 # The SOPS age private key. The public age1... recipient is fine to commit.
