@@ -1,0 +1,113 @@
+# Two-part backup, the supported p4d way:
+#   1. A CronJob asks the LIVE server for an online checkpoint (`p4 admin
+#      checkpoint`). You can't safely copy live db.* files; the checkpoint is the
+#      consistent, restorable snapshot of metadata. It lands under P4ROOT.
+#   2. A borgmatic CronJob then backs up the data PVC (checkpoints + depot files)
+#      to the Hetzner Storage Box over SSH. Restore replays the checkpoint, not
+#      the live db.*.
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: p4d-checkpoint
+  namespace: perforce
+spec:
+  schedule: "0 1 * * *"            # 01:00 daily, before the borg window
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: checkpoint
+              image: registry.aquilla.dev/davud/helix-p4d:latest   # has the p4 client
+              env:
+                - name: P4PORT
+                  value: "p4d:1666"
+                - name: P4USER
+                  value: p4admin
+              envFrom:
+                - secretRef:
+                    name: perforce-secret    # P4PASSWD
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  set -e
+                  echo "$P4PASSWD" | p4 login
+                  # -Z creates+rotates a compressed checkpoint of server metadata
+                  p4 admin checkpoint -Z
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: perforce-borgmatic
+  namespace: perforce
+data:
+  perforce.yaml: |
+    repositories:
+      - path: anotherurllol12345.ssh
+        label: perforce
+    source_directories:
+      - /data
+    # Live lock/journal files get captured but are ignored on restore -- the
+    # checkpoint is the source of truth for metadata.
+    keep_daily: 7
+    keep_weekly: 4
+    keep_monthly: 6
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: perforce-backup
+  namespace: perforce
+spec:
+  schedule: "0 2 * * *"            # 02:00, after the checkpoint
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          securityContext:
+            runAsUser: 0
+          containers:
+            - name: borgmatic
+              image: ghcr.io/borgmatic-collective/borgmatic:latest   # TODO: pin a tag
+              command: ["borgmatic", "--verbosity", "1", "--stats"]
+              env:
+                - name: BORG_PASSPHRASE
+                  valueFrom:
+                    secretKeyRef:
+                      name: borg-credentials
+                      key: BORG_PASSPHRASE
+                # TODO: pin the storage-box host key (mount known_hosts) instead
+                # of accept-new; the archive is borg-encrypted in transit anyway.
+                - name: BORG_RSH
+                  value: "ssh -i /etc/borg-ssh/id_ed25519 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=accept-new"
+              volumeMounts:
+                - name: config
+                  mountPath: /etc/borgmatic.d
+                  readOnly: true
+                - name: ssh-key
+                  mountPath: /etc/borg-ssh
+                  readOnly: true
+                - name: data
+                  mountPath: /data
+                  readOnly: true
+          volumes:
+            - name: config
+              configMap:
+                name: perforce-borgmatic
+            - name: ssh-key
+              secret:
+                secretName: borg-credentials
+                items:
+                  - key: BORG_SSH_KEY
+                    path: id_ed25519
+                    mode: 0600
+            - name: data
+              persistentVolumeClaim:
+                claimName: data-p4d-0     # the StatefulSet volumeClaimTemplate PVC
+                readOnly: true

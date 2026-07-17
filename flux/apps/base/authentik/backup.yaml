@@ -1,0 +1,83 @@
+# Logical backup of the authentik Postgres to the Hetzner Storage Box via borg.
+#
+# CNPG can't back up to SFTP (barman is S3/Azure/GCS only), so instead of an
+# operator-native barman backup, borgmatic runs pg_dump and pushes an encrypted,
+# deduplicated archive to the storage box over SSH. Runs IN the authentik
+# namespace so it can read the CNPG-generated DB password (authentik-db-app) and
+# reach the cluster service directly.
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: authentik-borgmatic
+  namespace: authentik
+data:
+  authentik.yaml: |
+    repositories:
+      - path: ssh://myprecommithookdoesntletmepostthis.ssh.co.uk.org
+        label: authentik-db
+    # borgmatic runs pg_dump itself (custom format) and streams it into the
+    # archive -- nothing touches the live data directory.
+    postgresql_databases:
+      - name: authentik
+        hostname: authentik-db-rw.authentik.svc
+        username: authentik
+        password: "${AUTHENTIK_DB_PASSWORD}"
+        format: custom
+    # Retention (top-level keys; older borgmatic nests these under `retention:`).
+    keep_daily: 7
+    keep_weekly: 4
+    keep_monthly: 6
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: authentik-db-backup
+  namespace: authentik
+spec:
+  schedule: "30 2 * * *"           # 02:30 daily
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          securityContext:
+            runAsUser: 0             # read the mounted ssh key; write borg cache
+          containers:
+            - name: borgmatic
+              image: ghcr.io/borgmatic-collective/borgmatic:latest
+              command: ["borgmatic", "--verbosity", "1", "--stats"]
+              env:
+                - name: BORG_PASSPHRASE
+                  valueFrom:
+                    secretKeyRef:
+                      name: borg-credentials
+                      key: BORG_PASSPHRASE
+                - name: AUTHENTIK_DB_PASSWORD          # CNPG app secret, same ns
+                  valueFrom:
+                    secretKeyRef:
+                      name: authentik-db-app
+                      key: password
+                # TODO: pin the storage-box host key (mount known_hosts) instead
+                # of accept-new; the archive is borg-encrypted in transit anyway.
+                - name: BORG_RSH
+                  value: "ssh -i /etc/borg-ssh/id_ed25519 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=accept-new"
+              volumeMounts:
+                - name: config
+                  mountPath: /etc/borgmatic.d
+                  readOnly: true
+                - name: ssh-key
+                  mountPath: /etc/borg-ssh
+                  readOnly: true
+          volumes:
+            - name: config
+              configMap:
+                name: authentik-borgmatic
+            - name: ssh-key
+              secret:
+                secretName: borg-credentials
+                items:
+                  - key: BORG_SSH_KEY
+                    path: id_ed25519
+                    mode: 0600

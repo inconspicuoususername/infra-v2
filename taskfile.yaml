@@ -1,0 +1,11 @@
+version: "3"
+
+# Helper tasks for the k0s + Flux stack. Chart/image versions live next to each
+# resource (Renovate keeps them current); this is just a read-only roll-up so you
+# can eyeball the whole stack's pinned versions in one place.
+tasks:
+  versions:
+    desc: Roll up every pinned chart/image version across the flux tree
+    dir: flux
+    cmds:
+      - "grep -rnE '^[[:space:]]*(chart|version|image|tag):[[:space:]]+[^[:space:]]' --include='*.yaml' . | grep -v apiVersion | sort"

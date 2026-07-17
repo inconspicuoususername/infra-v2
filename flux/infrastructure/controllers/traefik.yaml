@@ -1,0 +1,61 @@
+---
+# Chart source, colocated so this file owns traefik's source + release.
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: traefik
+  namespace: traefik
+spec:
+  interval: 24h
+  url: https://traefik.github.io/charts
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: traefik
+  namespace: traefik
+spec:
+  interval: 1h
+  chart:
+    spec:
+      chart: traefik
+      version: "41.0.0"
+      sourceRef:
+        kind: HelmRepository
+        name: traefik           # same namespace, so sourceRef.namespace is omitted
+  values:
+    # Single node, no MetalLB: bind host ports directly. One replica so the
+    # hostPorts don't collide.
+    deployment:
+      replicas: 1
+    service:
+      type: ClusterIP
+    ports:
+      web:
+        port: 8000
+        hostPort: 80
+        # redirect http -> https
+        redirectTo:
+          port: websecure
+      websecure:
+        port: 8443
+        hostPort: 443
+        tls:
+          enabled: true
+      # Custom TCP entrypoint for Perforce. Referenced by the IngressRouteTCP
+      # in apps/base/perforce. p4d does its own SSL, so this is pure passthrough.
+      p4d:
+        port: 1666
+        hostPort: 1666
+        expose:
+          default: true
+        exposedPort: 1666
+        protocol: TCP
+    # Let cert-manager issue certs (via IngressRoute tls secretName); we don't
+    # use Traefik's built-in ACME here.
+    providers:
+      kubernetesCRD:
+        enabled: true
+        allowCrossNamespace: true
+      kubernetesIngress:
+        enabled: true        # needed so cert-manager HTTP-01 solver Ingress works

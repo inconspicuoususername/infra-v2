@@ -1,0 +1,40 @@
+# stuff
+name: gitleaks
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  gitleaks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # scan full history, not just the tip commit
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # GITLEAKS_LICENSE is only required for org-owned repos; personal
+          # accounts run free. Rules come from .gitleaks.toml at repo root.
+
+  sops-guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: All SOPS-covered files must actually be encrypted
+        run: |
+          fail=0
+          while IFS= read -r f; do
+            case "$f" in
+              secret.yaml | */secret.yaml | *.secret.yaml | hosts.yaml | */hosts.yaml)
+                if ! grep -q 'ENC\[AES256_GCM' "$f"; then
+                  echo "::error file=$f::matches a SOPS rule but is NOT encrypted"
+                  fail=1
+                fi
+                ;;
+            esac
+          done < <(git ls-files)
+          exit $fail

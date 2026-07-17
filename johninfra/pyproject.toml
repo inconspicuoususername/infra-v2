@@ -1,0 +1,13 @@
+[project]
+name = "johninfra"
+version = "0.1.0"
+description = "john infra. like john payday. or john battlefield. or john AI"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "colorlog>=6.10.1",
+    "pydantic>=2.13.4",
+    "pydantic-settings>=2.14.2",
+    "pyinfra>=3.9.2",
+    "pyyaml>=6.0.3",
+]

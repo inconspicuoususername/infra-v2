@@ -1,0 +1,4 @@
+creation_rules:
+  - path_regex: 'hosts.yaml'
+    encrypted_regex: ^(secrets)$
+    age: age13crn4t6762vdxz3jthwyw4qxjutuknydnr677g3mqzuf8xy0r53smjtway

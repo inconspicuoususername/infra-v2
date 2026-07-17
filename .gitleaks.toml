@@ -1,0 +1,56 @@
+# Secret/host scanning rules for the pre-commit hook (see .githooks/pre-commit).
+# Extends the ~150 built-in gitleaks rules (cloud keys, tokens, private keys...)
+# with rules for what this repo is actually paranoid about: infrastructure hosts.
+#
+# NOTE: gitleaks uses Go RE2 — no lookaheads. Exclusions go in [rules.allowlist]
+# blocks, not the regex.
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "This config file contains the allowlisted literals themselves"
+paths = ['''\.gitleaks\.toml$''']
+
+# Tailscale MagicDNS names leak the tailnet name and machine list.
+[[rules]]
+id = "tailscale-magicdns-hostname"
+description = "Tailscale MagicDNS hostname (*.ts.net)"
+regex = '''[a-zA-Z0-9-]+\.[a-z0-9-]+\.ts\.net'''
+
+# Any IPv4 that isn't loopback/RFC1918/link-local. Tailnet 100.64/10 addresses
+# are deliberately NOT allowlisted — they map machines, so they get flagged.
+[[rules]]
+id = "public-ipv4"
+description = "IPv4 address outside private/loopback ranges"
+regex = '''\b([0-9]{1,3}\.){3}[0-9]{1,3}\b'''
+[rules.allowlist]
+regexTarget = "match"
+regexes = [
+    '''^0\.''',
+    '''^10\.''',
+    '''^127\.''',
+    '''^169\.254\.''',
+    '''^172\.(1[6-9]|2[0-9]|3[01])\.''',
+    '''^192\.168\.''',
+    '''^255\.''',
+]
+paths = ['''(^|/)uv\.lock$''']  # 4-part package versions look like IPs
+
+# user@host pairs: ssh targets, borg repo URLs, emails.
+[[rules]]
+id = "user-at-host"
+description = "user@host / email-like string"
+regex = '''[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-z]{2,}'''
+[rules.allowlist]
+regexTarget = "match"
+regexes = [
+#    '''^u568294@u568294\.your-storagebox\.de$''',
+    '''^me@davud\.io$''',
+]
+
+# The SOPS age private key. The public age1... recipient is fine to commit.
+[[rules]]
+id = "age-secret-key"
+description = "age private key"
+regex = '''AGE-SECRET-KEY-1[0-9A-Z]+'''

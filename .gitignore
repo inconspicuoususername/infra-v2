@@ -1,0 +1,19 @@
+# Decrypted secrets must never be committed in plaintext. Encrypt in place with
+# SOPS before committing; if you keep a transient plaintext copy, name it .dec.yaml.
+*.dec.yaml
+johninfra/age.agekey
+k0sctl/*.kubeconfig
+
+# example operator in go
+backup-operator-sample/
+
+# AI-generated commands cheatsheet
+CHEATSHEET.md
+
+# contains k0s generated setup containing list of hosts.
+k0sctl/k0sctl.yaml
+
+# IDE/tooling junk
+.idea/
+.venv/
+__pycache__/

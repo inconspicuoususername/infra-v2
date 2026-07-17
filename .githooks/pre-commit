@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+# Pre-commit guard: hosts and secrets must never enter history.
+# Wired up via: git config core.hooksPath .githooks
+set -euo pipefail
+cd "$(git rev-parse --show-toplevel)"
+
+# Fail CLOSED if the scanner is missing — a silently skipped check is worse
+# than an annoying one.
+if ! command -v gitleaks >/dev/null 2>&1; then
+    echo "pre-commit: gitleaks not found — refusing to commit." >&2
+    echo "  install: sudo pacman -S gitleaks   (rules live in .gitleaks.toml)" >&2
+    exit 1
+fi
+
+gitleaks git --pre-commit --staged --redact --no-banner --verbose
+
+# SOPS guard: any staged file that .sops.yaml is supposed to encrypt must
+# actually BE encrypted, so a forgotten `sops -e -i` can't slip through.
+fail=0
+while IFS= read -r f; do
+    case "$f" in
+        secret.yaml | */secret.yaml | *.secret.yaml | hosts.yaml | */hosts.yaml)
+            if ! git show ":$f" | grep -q 'ENC\[AES256_GCM'; then
+                echo "pre-commit: $f matches a SOPS rule but is NOT encrypted" >&2
+                fail=1
+            fi
+            ;;
+    esac
+done < <(git diff --cached --name-only --diff-filter=ACM)
+
+if [ "$fail" -ne 0 ]; then
+    echo "pre-commit: encrypt with 'sops -e -i <file>' and re-stage." >&2
+    exit 1
+fi

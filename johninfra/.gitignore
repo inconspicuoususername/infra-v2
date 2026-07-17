@@ -1,0 +1,3 @@
+# contains list of hosts and sops encrypted secrets.
+data/
+pyinfra-debug.log

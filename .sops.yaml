@@ -1,0 +1,11 @@
+# SOPS rules: only *.secret.yaml files are encrypted, and only their
+# data/stringData fields (so the k8s metadata stays readable/diffable in git).
+#
+# Generate your age key once:  age-keygen -o age.agekey
+# Put the PUBLIC key (age1...) below. Keep the private key off git and load it
+# into the cluster as the `sops-age` secret in flux-system (see README.md).
+creation_rules:
+  # Matches both the per-app `secret.yaml` files and any `*.secret.yaml`.
+  - path_regex: (^|/)([^/]+\.)?secret\.yaml$
+    encrypted_regex: ^(data|stringData)$
+    age: age13crn4t6762vdxz3jthwyw4qxjutuknydnr677g3mqzuf8xy0r53smjtway

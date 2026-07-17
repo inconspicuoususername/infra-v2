@@ -1,0 +1,32 @@
+---
+# Chart source, colocated so this file owns cloudnative-pg's source + release.
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: cnpg
+  namespace: cnpg-system
+spec:
+  interval: 24h
+  url: https://cloudnative-pg.github.io/charts
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: cloudnative-pg
+  namespace: cnpg-system
+spec:
+  interval: 1h
+  chart:
+    spec:
+      chart: cloudnative-pg
+      version: "0.29.0"
+      sourceRef:
+        kind: HelmRepository
+        name: cnpg              # same namespace, so sourceRef.namespace is omitted
+  install:
+    crds: Create
+  upgrade:
+    crds: CreateReplace
+  # The operator installs its CRDs (Cluster, ScheduledBackup, etc.); app
+  # manifests under apps/ create Cluster resources that this operator manages,
+  # including continuous backup to object storage.

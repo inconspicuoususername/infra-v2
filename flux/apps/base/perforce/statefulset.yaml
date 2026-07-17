@@ -1,0 +1,54 @@
+# p4d is a single-writer stateful pet. Model it conservatively:
+#  - StatefulSet, replicas: 1  -> stable identity + stable PVC, never two pods
+#    on the same volume (RollingUpdate on a 1-replica STS terminates the old pod
+#    before creating the new one, so there is no overlap).
+#  - storage on openebs-hostpath (LOCAL disk). NEVER put db.* on network storage.
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: p4d
+  namespace: perforce
+spec:
+  serviceName: p4d
+  replicas: 1
+  selector:
+    matchLabels:
+      app: p4d
+  template:
+    metadata:
+      labels:
+        app: p4d
+    spec:
+      containers:
+        - name: p4d
+          # your existing custom image
+          image: registry.aquilla.dev/davud/helix-p4d:latest   # TODO: pin a tag
+          ports:
+            - name: p4d
+              containerPort: 1666
+          env:
+            - name: P4USER
+              value: p4admin
+            - name: P4D_USE_UNICODE
+              value: "true"
+          envFrom:
+            - secretRef:
+                name: perforce-secret        # P4PASSWD
+          volumeMounts:
+            - name: data
+              mountPath: /data
+          readinessProbe:
+            tcpSocket:
+              port: 1666
+            initialDelaySeconds: 10
+            periodSeconds: 10
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: openebs-hostpath
+        resources:
+          requests:
+            storage: 50Gi                     # TODO: size for your depot

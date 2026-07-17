@@ -1,0 +1,26 @@
+# CloudNativePG-managed Postgres for authentik.
+#
+# CNPG owns the DB lifecycle: provisioning, failover, and rolling minor upgrades.
+# Backups are NOT barman/S3 here (the target is a Hetzner Storage Box over SFTP,
+# not object storage) -- the DB is dumped logically and shipped to borg by the
+# CronJob in backup.yaml.
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: authentik-db
+  namespace: authentik
+spec:
+  instances: 1                       # single node; bump when you add nodes
+  storage:
+    size: 10Gi
+    storageClass: openebs-hostpath   # local disk (from k0s)
+
+  # App database + owner role. CNPG generates the password into a Secret named
+  # "<cluster>-app" (authentik-db-app) with keys username/password/uri/etc.
+  bootstrap:
+    initdb:
+      database: authentik
+      owner: authentik
+  # No `backup:` block: barman only targets S3/Azure/GCS, and the storage target
+  # is a Hetzner Storage Box (SFTP). Logical dump + borg lives in backup.yaml.

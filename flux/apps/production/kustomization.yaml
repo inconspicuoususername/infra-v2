@@ -1,0 +1,7 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+# Production overlay. For a single environment this just pulls in the bases;
+# add patches here when a second environment (e.g. staging) appears.
+resources:
+  - ../base/authentik
+  - ../base/perforce

@@ -1,0 +1,19 @@
+# Cluster-wide Let's Encrypt issuer. HTTP-01 solved through Traefik (the chart
+# has kubernetesIngress enabled so cert-manager's temporary solver Ingress is
+# routed). Apps request certs via Certificate resources referencing this issuer.
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-prod
+spec:
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory
+    # TODO: your email
+    email: me@davud.io
+    privateKeySecretRef:
+      name: letsencrypt-prod-account-key
+    solvers:
+      - http01:
+          ingress:
+            ingressClassName: traefik

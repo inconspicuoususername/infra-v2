@@ -1,0 +1,33 @@
+apiVersion: k0sctl.k0sproject.io/v1beta1
+kind: Cluster
+metadata:
+  name: davud
+spec:
+  hosts:
+    - role: single    
+      ssh:
+        address: server.something.something
+        user: root
+        keyPath: ~/.ssh/sshkey123
+  k0s:
+    # TODO: pin to a current k0s release (https://github.com/k0sproject/k0s/releases)
+    version: v1.36.2+k0s
+    dynamicConfig: false
+    config:
+      apiVersion: k0s.k0sproject.io/v1beta1
+      kind: ClusterConfig
+      metadata:
+        name: k0s
+      spec:
+        network:
+          provider: kuberouter        # k0s default CNI — DNS/kube-proxy included
+          podCIDR: 10.244.0.0/16
+          serviceCIDR: 10.96.0.0/12
+        extensions:
+          # The ONLY in-cluster thing k0sctl installs: a local storage provider,
+          # so there's always a default StorageClass for Flux's apps to bind to.
+          # Everything else is Flux's job.
+          storage:
+            type: openebs_local_storage
+        telemetry:
+          enabled: false
