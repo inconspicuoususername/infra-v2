@@ -1,0 +1,30 @@
+---
+# Chart source, colocated so this file owns metallb's source + release.
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: metallb
+  namespace: metallb-system
+spec:
+  interval: 24h
+  url: https://metallb.github.io/metallb
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: metallb
+  namespace: metallb-system
+spec:
+  interval: 1h
+  chart:
+    spec:
+      chart: metallb
+      version: "0.16.1"
+      sourceRef:
+        kind: HelmRepository
+        name: metallb          # same namespace, so sourceRef.namespace is omitted
+  # Chart defaults install the CRDs (IPAddressPool, L2Advertisement, ...) plus the
+  # controller Deployment and the speaker DaemonSet. The IPAddressPool/L2Advertisement
+  # CRs live in infra-configs, which dependsOn infra-controllers (wait: true) so the
+  # CRDs exist before those CRs apply. L2 mode: no FRR/BGP, speaker just answers ARP.
+  values: {}

@@ -24,16 +24,19 @@ spec:
         kind: HelmRepository
         name: traefik           # same namespace, so sourceRef.namespace is omitted
   values:
-    # Single node, no MetalLB: bind host ports directly. One replica so the
-    # hostPorts don't collide.
+    # MetalLB (L2) fronts the cluster: the Service is type LoadBalancer and MetalLB
+    # hands it the pinned VIP below. One replica is plenty for a single node.
     deployment:
       replicas: 1
     service:
-      type: ClusterIP
+      type: LoadBalancer
+      annotations:
+        # Pin the VIP so DNS stays stable; .240 is the first address in the pool
+        # (see infrastructure/configs/metallb-pool.yaml).
+        metallb.universe.tf/loadBalancerIPs: 10.24.1.240
     ports:
       web:
         port: 8000
-        hostPort: 80
         # redirect http -> https (chart v34+ moved this under http.redirections)
         http:
           redirections:
@@ -42,7 +45,6 @@ spec:
               scheme: https
       websecure:
         port: 8443
-        hostPort: 443
         http:
           tls:
             enabled: true
@@ -50,7 +52,6 @@ spec:
       # in apps/base/perforce. p4d does its own SSL, so this is pure passthrough.
       p4d:
         port: 1666
-        hostPort: 1666
         expose:
           default: true
         exposedPort: 1666

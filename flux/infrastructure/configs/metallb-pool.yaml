@@ -1,0 +1,25 @@
+# MetalLB address pool + L2 advertisement. Lives in infra-configs (not controllers)
+# because these CRs need MetalLB's CRDs, which the HelmRelease in infra-controllers
+# installs first (infra-configs dependsOn infra-controllers, wait: true).
+#
+# L2 mode: an elected speaker answers ARP for pool IPs on the LAN. The pool is
+# 10.24.1.240-.250 on 10.24.1.0/24 (node .50, router .1) and MUST stay outside the
+# MikroTik DHCP scope. Traefik pins .240 via a service annotation.
+---
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: default-pool
+  namespace: metallb-system
+spec:
+  addresses:
+    - 10.24.1.240-10.24.1.250
+---
+apiVersion: metallb.io/v1beta1
+kind: L2Advertisement
+metadata:
+  name: default-l2
+  namespace: metallb-system
+spec:
+  ipAddressPools:
+    - default-pool

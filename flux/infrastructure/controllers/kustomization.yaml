@@ -3,5 +3,6 @@ kind: Kustomization
 resources:
   - namespaces.yaml
   - cert-manager.yaml
+  - metallb.yaml
   - traefik.yaml
   - cloudnative-pg.yaml

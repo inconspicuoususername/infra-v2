@@ -13,3 +13,14 @@ apiVersion: v1
 kind: Namespace
 metadata:
   name: cnpg-system
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: metallb-system
+  # The speaker DaemonSet needs NET_RAW/NET_ADMIN to send gratuitous ARP, so the
+  # namespace must permit privileged pods under Pod Security Admission.
+  labels:
+    pod-security.kubernetes.io/enforce: privileged
+    pod-security.kubernetes.io/audit: privileged
+    pod-security.kubernetes.io/warn: privileged
