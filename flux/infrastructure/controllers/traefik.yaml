@@ -34,14 +34,18 @@ spec:
       web:
         port: 8000
         hostPort: 80
-        # redirect http -> https
-        redirectTo:
-          port: websecure
+        # redirect http -> https (chart v34+ moved this under http.redirections)
+        http:
+          redirections:
+            entryPoint:
+              to: websecure
+              scheme: https
       websecure:
         port: 8443
         hostPort: 443
-        tls:
-          enabled: true
+        http:
+          tls:
+            enabled: true
       # Custom TCP entrypoint for Perforce. Referenced by the IngressRouteTCP
       # in apps/base/perforce. p4d does its own SSL, so this is pure passthrough.
       p4d:
