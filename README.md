@@ -11,7 +11,7 @@ config, so this must be re-run in every fresh clone:
 git config core.hooksPath .githooks
 ```
 
-Requires `gitleaks` on PATH (`pacman -S gitleaks/brew install gitleaks`).
+Requires `gitleaks` on PATH (`pacman -S gitleaks`/`brew install gitleaks`).
 
 
 ## Todo list for some other day

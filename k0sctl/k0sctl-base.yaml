@@ -24,10 +24,11 @@ spec:
           podCIDR: 10.244.0.0/16
           serviceCIDR: 10.96.0.0/12
         extensions:
-          # The ONLY in-cluster thing k0sctl installs: a local storage provider,
-          # so there's always a default StorageClass for Flux's apps to bind to.
-          # Everything else is Flux's job.
+          # Storage is Flux's job too: the openebs localpv-provisioner HelmRelease
+          # (flux/infrastructure/controllers/openebs.yaml) creates the openebs-hostpath
+          # StorageClass. external_storage tells k0s to install NO storage provider, so
+          # it can't collide with the Flux-managed one on a future `k0sctl apply`.
           storage:
-            type: openebs_local_storage
+            type: external_storage
         telemetry:
           enabled: false

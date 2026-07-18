@@ -1,0 +1,35 @@
+---
+# Chart source, colocated so this file owns openebs localpv's source + release.
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: openebs-localpv
+  namespace: openebs
+spec:
+  interval: 24h
+  url: https://openebs.github.io/dynamic-localpv-provisioner
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: localpv-provisioner
+  namespace: openebs
+spec:
+  interval: 1h
+  chart:
+    spec:
+      chart: localpv-provisioner
+      version: "4.5.1"
+      sourceRef:
+        kind: HelmRepository
+        name: openebs-localpv        # same namespace, so sourceRef.namespace is omitted
+  # Hostpath LocalPV ONLY. This chart is self-contained (no subchart deps, no CSI
+  # driver, no Node Disk Manager) — it provisions plain hostPath PVs that the kubelet
+  # mounts natively. So k0s's non-standard kubelet dir (/var/lib/k0s/kubelet) is
+  # irrelevant here; kubeletDir only matters for CSI engines (LVM/ZFS/Mayastor) in
+  # the openebs *umbrella* chart, which we deliberately avoid. Chart defaults already
+  # create the StorageClass "openebs-hostpath" backed by /var/openebs/local.
+  values:
+    hostpathClass:
+      enabled: true
+      name: openebs-hostpath

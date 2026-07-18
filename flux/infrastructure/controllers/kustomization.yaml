@@ -4,5 +4,6 @@ resources:
   - namespaces.yaml
   - cert-manager.yaml
   - metallb.yaml
+  - openebs.yaml
   - traefik.yaml
   - cloudnative-pg.yaml

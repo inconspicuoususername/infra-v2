@@ -24,3 +24,14 @@ metadata:
     pod-security.kubernetes.io/enforce: privileged
     pod-security.kubernetes.io/audit: privileged
     pod-security.kubernetes.io/warn: privileged
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: openebs
+  # The hostpath provisioner's ephemeral helper pods bind-mount /var/openebs/local
+  # via hostPath, which PSA baseline/restricted forbid; allow privileged here.
+  labels:
+    pod-security.kubernetes.io/enforce: privileged
+    pod-security.kubernetes.io/audit: privileged
+    pod-security.kubernetes.io/warn: privileged

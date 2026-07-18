@@ -32,8 +32,9 @@ spec:
       type: LoadBalancer
       annotations:
         # Pin the VIP so DNS stays stable; .240 is the first address in the pool
-        # (see infrastructure/configs/metallb-pool.yaml).
-        metallb.universe.tf/loadBalancerIPs: 10.24.1.240
+        # (see infrastructure/configs/metallb-pool.yaml). metallb.io/* is the
+        # current prefix; the old metallb.universe.tf/* annotations are deprecated.
+        metallb.io/loadBalancerIPs: 10.24.1.240
     ports:
       web:
         port: 8000

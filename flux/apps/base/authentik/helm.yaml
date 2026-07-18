@@ -27,14 +27,18 @@ spec:
         host: authentik-redis-master
 
     # Pull DB password from the CNPG-generated secret, and the rest from SOPS.
-    envValueFrom:
-      AUTHENTIK_POSTGRESQL__PASSWORD:
-        secretKeyRef:
-          name: authentik-db-app
-          key: password
+    # Chart 2026.x removed env/envValueFrom/envFrom; the replacement is global.env /
+    # global.envFrom (standard k8s env lists, applied to server + worker).
+    global:
+      env:
+        - name: AUTHENTIK_POSTGRESQL__PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: authentik-db-app
+              key: password
       envFrom:
-      - secretRef:
-          name: authentik-secret          # AUTHENTIK_SECRET_KEY, bootstrap creds
+        - secretRef:
+            name: authentik-secret          # AUTHENTIK_SECRET_KEY, bootstrap creds
 
     server:
       ingress:
