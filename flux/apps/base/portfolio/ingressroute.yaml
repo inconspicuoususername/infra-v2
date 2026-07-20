@@ -1,0 +1,17 @@
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: portfolio
+  namespace: portfolio
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`davud.io`) || Host(`www.davud.io`)
+      kind: Rule
+      services:
+        - name: portfolio
+          port: 3000
+  tls:
+    secretName: portfolio-tls

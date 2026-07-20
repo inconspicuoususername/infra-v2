@@ -1,0 +1,62 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: portfolio
+  namespace: portfolio
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate            # single RWO assets PVC — no two pods at once
+  selector:
+    matchLabels:
+      app: portfolio
+  template:
+    metadata:
+      labels:
+        app: portfolio
+    spec:
+      imagePullSecrets:
+        - name: registry-pull
+      containers:
+        - name: portfolio
+          image: registry.aquilla.dev/davud/portfolio:latest  # TODO: pin a tag
+          ports:
+            - name: http
+              containerPort: 3000
+          env:
+            # DATABASE_URL comes straight from the CNPG-generated app secret.
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: portfolio-db-app
+                  key: uri
+            - name: NEXT_PUBLIC_SITE_URL
+              value: https://davud.io
+            - name: NEXTAUTH_URL
+              value: https://davud.io
+            - name: AUTH_TRUST_HOST
+              value: "true"
+            - name: GITHUB_CLIENT_ID
+              value: Ov23liL0pEUDVhxEPBDh
+          envFrom:
+            # NEXTAUTH_SECRET + GITHUB_CLIENT_SECRET + ADMIN_ALLOWLIST
+            # (all SOPS-encrypted — the email trips gitleaks in plaintext).
+            - secretRef:
+                name: portfolio-secret
+          volumeMounts:
+            - name: assets
+              mountPath: /app/assets
+          resources:
+            limits:
+              cpu: "1"
+              memory: 512Mi
+          readinessProbe:
+            tcpSocket:
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+      volumes:
+        - name: assets
+          persistentVolumeClaim:
+            claimName: portfolio-assets

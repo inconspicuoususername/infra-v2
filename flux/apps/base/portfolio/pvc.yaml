@@ -1,0 +1,18 @@
+# User-uploaded assets (compose mounted ./assets -> /app/assets). Empty at
+# migration time, but the app writes uploads here, so it must persist.
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: portfolio-assets
+  namespace: portfolio
+  annotations:
+    # Survive an app teardown — same rationale as the namespace prune guard.
+    kustomize.toolkit.fluxcd.io/prune: disabled
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: openebs-hostpath
+  resources:
+    requests:
+      storage: 2Gi

@@ -1,0 +1,25 @@
+# CloudNativePG-managed Postgres for the davud.io portfolio.
+#
+# Source data was postgres:17.6 on server1 (db "portfolio", owner "myuser").
+# Restored forward into CNPG's default major (pg18) — same path proven for
+# authentik. CNPG generates the owner password into the "portfolio-db-app"
+# Secret (keys username/password/uri/...); the app reads DATABASE_URL from it.
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: portfolio-db
+  namespace: portfolio
+spec:
+  instances: 1                       # single node; bump when you add nodes
+  storage:
+    size: 5Gi
+    storageClass: openebs-hostpath   # local disk (from k0s)
+
+  # App database + owner role. CNPG mints the password into Secret
+  # "portfolio-db-app" with keys username/password/uri/etc.
+  bootstrap:
+    initdb:
+      database: portfolio
+      owner: myuser
+  # No `backup:` block — logical dump + borg handles it (see authentik/backup.yaml).
