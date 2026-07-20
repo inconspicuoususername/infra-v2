@@ -22,8 +22,7 @@ spec:
           ports:
             - name: http
               containerPort: 6011
-          # SMTP_* for the contact form. Still points at mail.aquilla.dev
-          # (mailcow on server1) — switch to Purelymail SMTP before decommission.
+          # SMTP_* for the contact form, via Purelymail.
           envFrom:
             - secretRef:
                 name: aquilla-website-smtp
