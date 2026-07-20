@@ -1,0 +1,96 @@
+# App tier. sage-frontend (3000) -> sage-backend (8080, .NET) -> alija-data
+# (6161, talks to milvus) + assistant-db (postgres, via DB_URL). No ingress in
+# the mothball; add it + sage-ai.aquilla.dev DNS on wake.
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: alija-data, namespace: sage-ai}
+spec:
+  replicas: 1
+  strategy: {type: Recreate}
+  selector: {matchLabels: {app: alija-data}}
+  template:
+    metadata: {labels: {app: alija-data}}
+    spec:
+      imagePullSecrets: [{name: registry-pull}]
+      containers:
+        - name: alija-data
+          image: registry.aquilla.dev/aquilla/alija-data:latest   # TODO: pin a tag
+          env:
+            - {name: OPENAI_API_KEY, valueFrom: {secretKeyRef: {name: sage-secret, key: OPENAI_API_KEY}}}
+            - {name: INSERT_USE_CACHE, value: "true"}
+            - {name: MILVUS_HOST, value: milvus-standalone}
+          ports: [{containerPort: 6161}]
+          volumeMounts: [{name: data, mountPath: /var/data/alija}]
+          resources: {limits: {cpu: "1", memory: 512Mi}}
+      volumes:
+        - {name: data, persistentVolumeClaim: {claimName: sage-alija}}
+---
+apiVersion: v1
+kind: Service
+metadata: {name: alija-data, namespace: sage-ai}
+spec:
+  selector: {app: alija-data}
+  ports: [{name: http, port: 6161, targetPort: 6161}]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: sage-backend, namespace: sage-ai}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: sage-backend}}
+  template:
+    metadata: {labels: {app: sage-backend}}
+    spec:
+      imagePullSecrets: [{name: registry-pull}]
+      containers:
+        - name: sage-backend
+          image: registry.aquilla.dev/aquilla/sage-ai-be:latest   # TODO: pin a tag
+          env:
+            - {name: ASPNETCORE_URLS, value: "http://0.0.0.0:8080"}
+            - {name: AlijaData__Url, value: "http://alija-data:6161"}
+            - {name: OpenAI__ApiKey, valueFrom: {secretKeyRef: {name: sage-secret, key: OPENAI_API_KEY}}}
+            - {name: ConnectionStrings__AppDatabase, valueFrom: {secretKeyRef: {name: sage-secret, key: DB_URL}}}
+          ports: [{containerPort: 8080}]
+          readinessProbe:
+            httpGet: {path: /api/health, port: 8080}
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          resources: {limits: {cpu: "1", memory: 512Mi}}
+---
+apiVersion: v1
+kind: Service
+metadata: {name: sage-backend, namespace: sage-ai}
+spec:
+  selector: {app: sage-backend}
+  ports: [{name: http, port: 8080, targetPort: 8080}]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: sage-frontend, namespace: sage-ai}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: sage-frontend}}
+  template:
+    metadata: {labels: {app: sage-frontend}}
+    spec:
+      imagePullSecrets: [{name: registry-pull}]
+      containers:
+        - name: sage-frontend
+          image: registry.aquilla.dev/aquilla/sage-ai-fe:latest   # TODO: pin a tag
+          env:
+            - {name: BACKEND_URL, value: "http://sage-backend:8080"}
+            - {name: APP_ENV, value: production}
+          ports: [{containerPort: 3000}]
+          readinessProbe:
+            tcpSocket: {port: 3000}
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources: {limits: {cpu: "1", memory: 512Mi}}
+---
+apiVersion: v1
+kind: Service
+metadata: {name: sage-frontend, namespace: sage-ai}
+spec:
+  selector: {app: sage-frontend}
+  ports: [{name: http, port: 3000, targetPort: 3000}]

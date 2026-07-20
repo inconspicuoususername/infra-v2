@@ -1,0 +1,69 @@
+# Six data volumes transplanted from server1 ./volumes/*. All prune: disabled
+# so the seeded data outlives the mothball. The Milvus triad (etcd meta + minio
+# objects + milvus data) must stay a consistent set — copied together at rest.
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: sage-mssql
+  namespace: sage-ai
+  annotations: {kustomize.toolkit.fluxcd.io/prune: disabled}
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: openebs-hostpath
+  resources: {requests: {storage: 2Gi}}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: sage-pg
+  namespace: sage-ai
+  annotations: {kustomize.toolkit.fluxcd.io/prune: disabled}
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: openebs-hostpath
+  resources: {requests: {storage: 1Gi}}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: sage-etcd
+  namespace: sage-ai
+  annotations: {kustomize.toolkit.fluxcd.io/prune: disabled}
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: openebs-hostpath
+  resources: {requests: {storage: 1Gi}}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: sage-minio
+  namespace: sage-ai
+  annotations: {kustomize.toolkit.fluxcd.io/prune: disabled}
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: openebs-hostpath
+  resources: {requests: {storage: 1Gi}}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: sage-milvus
+  namespace: sage-ai
+  annotations: {kustomize.toolkit.fluxcd.io/prune: disabled}
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: openebs-hostpath
+  resources: {requests: {storage: 2Gi}}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: sage-alija
+  namespace: sage-ai
+  annotations: {kustomize.toolkit.fluxcd.io/prune: disabled}
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: openebs-hostpath
+  resources: {requests: {storage: 512Mi}}

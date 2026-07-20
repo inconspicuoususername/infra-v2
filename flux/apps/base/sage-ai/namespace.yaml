@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: sage-ai
+  annotations:
+    # MOTHBALL (see apps/production/kustomization.yaml). Full Milvus stack:
+    # frontend + backend + alija-data + MSSQL + postgres + etcd + minio +
+    # milvus-standalone. After seeding, sage-ai is removed from production so
+    # Flux prunes the workloads; this namespace + the 6 data PVCs (all
+    # prune: disabled) survive. Re-add the entry to wake it on the old data.
+    kustomize.toolkit.fluxcd.io/prune: disabled
