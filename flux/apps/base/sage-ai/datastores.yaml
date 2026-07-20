@@ -25,7 +25,7 @@ spec:
             - {name: ETCDCTL_API, value: "3"}
           ports: [{containerPort: 2379}]
           volumeMounts: [{name: data, mountPath: /etcd}]
-          resources: {limits: {cpu: "1", memory: 512Mi}}
+          resources: {limits: {memory: 512Mi}}
       volumes:
         - {name: data, persistentVolumeClaim: {claimName: sage-etcd}}
 ---
@@ -55,7 +55,7 @@ spec:
             - {name: MINIO_SECRET_KEY, valueFrom: {secretKeyRef: {name: sage-secret, key: MINIO_SECRET_KEY}}}
           ports: [{containerPort: 9000}, {containerPort: 9001}]
           volumeMounts: [{name: data, mountPath: /minio_data}]
-          resources: {limits: {cpu: "1", memory: 512Mi}}
+          resources: {limits: {memory: 512Mi}}
       volumes:
         - {name: data, persistentVolumeClaim: {claimName: sage-minio}}
 ---
@@ -87,7 +87,7 @@ spec:
             - {name: MQ_TYPE, value: rocksmq}
           ports: [{containerPort: 19530}, {containerPort: 9091}]
           volumeMounts: [{name: data, mountPath: /var/lib/milvus}]
-          resources: {limits: {cpu: "2", memory: 3Gi}}
+          resources: {limits: {memory: 3Gi}}
       volumes:
         - {name: data, persistentVolumeClaim: {claimName: sage-milvus}}
 ---
@@ -117,7 +117,7 @@ spec:
             - {name: MSSQL_SA_PASSWORD, valueFrom: {secretKeyRef: {name: sage-secret, key: MSSQL_SA_PASSWORD}}}
           ports: [{containerPort: 1433}]
           volumeMounts: [{name: data, mountPath: /var/opt/mssql}]
-          resources: {limits: {cpu: "2", memory: 3Gi}}
+          resources: {limits: {memory: 3Gi}}
       volumes:
         - {name: data, persistentVolumeClaim: {claimName: sage-mssql}}
 ---
@@ -147,7 +147,7 @@ spec:
             - {name: POSTGRES_PASSWORD, valueFrom: {secretKeyRef: {name: sage-secret, key: POSTGRES_PASSWORD}}}
           ports: [{containerPort: 5432}]
           volumeMounts: [{name: data, mountPath: /var/lib/postgresql}]
-          resources: {limits: {cpu: "1", memory: 512Mi}}
+          resources: {limits: {memory: 512Mi}}
       volumes:
         - {name: data, persistentVolumeClaim: {claimName: sage-pg}}
 ---
