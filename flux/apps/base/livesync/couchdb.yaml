@@ -54,10 +54,10 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: couchdb-for-ols          # MUST match the cloudflared tunnel's ingress
-  namespace: livesync            # target (http://couchdb-for-ols:5984), which
-spec:                            # is CF-managed and not editable with our token
-  selector:
+  name: couchdb                  # MUST match the cloudflared tunnel's ingress
+  namespace: livesync            # target — confirmed http://couchdb:5984 from
+spec:                            # the connector logs (CF-managed, not editable
+  selector:                      # with our token, so the Service name adapts).
     app: couchdb
   ports:
     - name: couchdb
