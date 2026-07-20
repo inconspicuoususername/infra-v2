@@ -34,6 +34,12 @@ spec:
               value: p4admin
             - name: P4D_USE_UNICODE
               value: "true"
+            # Plain TCP. TLS is terminated at Traefik (see ingressroutetcp.yaml),
+            # NOT by p4d. The entrypoint runs its SSL init path iff P4PORT starts
+            # with "ssl:", so keep this plain — an "ssl:" value here crashloops
+            # the pod (entrypoint's `p4 trust` fails against a non-SSL listener).
+            - name: P4PORT
+              value: "1666"
           envFrom:
             - secretRef:
                 name: perforce-secret        # P4PASSWD
