@@ -1,0 +1,36 @@
+# Cloudflare tunnel connector for livesync.davud.io. Token-managed (remote)
+# tunnel 18ef4561-… : the ingress rule (livesync.davud.io -> couchdb-for-ols:5984)
+# lives in the CF Zero-Trust dashboard, not here. Runs outbound-only, no ingress.
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cloudflared
+  namespace: livesync
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cloudflared
+  template:
+    metadata:
+      labels:
+        app: cloudflared
+    spec:
+      containers:
+        - name: cloudflared
+          image: cloudflare/cloudflared:latest   # TODO: pin a tag
+          args:
+            - tunnel
+            - --no-autoupdate
+            - run
+          env:
+            - name: TUNNEL_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: livesync-secret
+                  key: TUNNEL_TOKEN
+          resources:
+            limits:
+              cpu: "500m"
+              memory: 128Mi

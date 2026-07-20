@@ -1,0 +1,34 @@
+# CouchDB databases (compose ./couchdb-data -> /opt/couchdb/data) and the
+# local config overrides (./couchdb-etc -> /opt/couchdb/etc/local.d, holds the
+# admin hash, obsidian CORS rules, server uuid + auth secret). Both transplanted
+# from server1; node name stays "nonode@nohost" so the shards map.
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: livesync-data
+  namespace: livesync
+  annotations:
+    kustomize.toolkit.fluxcd.io/prune: disabled
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: openebs-hostpath
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: livesync-etc
+  namespace: livesync
+  annotations:
+    kustomize.toolkit.fluxcd.io/prune: disabled
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: openebs-hostpath
+  resources:
+    requests:
+      storage: 128Mi

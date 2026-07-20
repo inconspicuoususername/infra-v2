@@ -1,0 +1,9 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: livesync
+resources:
+  - namespace.yaml
+  - secret.yaml          # cloudflared tunnel token (SOPS)
+  - pvc.yaml
+  - couchdb.yaml
+  - cloudflared.yaml
