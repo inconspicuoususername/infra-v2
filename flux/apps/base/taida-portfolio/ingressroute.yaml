@@ -1,0 +1,17 @@
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: taida-portfolio
+  namespace: taida-portfolio
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`taida.ink`) || Host(`www.taida.ink`)
+      kind: Rule
+      services:
+        - name: taida-portfolio
+          port: 3000
+  tls:
+    secretName: taida-portfolio-tls

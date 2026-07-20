@@ -1,0 +1,17 @@
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: abrabus
+  namespace: abrabus
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`abrabus.aquilla.dev`)
+      kind: Rule
+      services:
+        - name: abrabus
+          port: 6011
+  tls:
+    secretName: abrabus-tls

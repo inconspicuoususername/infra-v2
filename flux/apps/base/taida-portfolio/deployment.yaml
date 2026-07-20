@@ -1,0 +1,35 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: taida-portfolio
+  namespace: taida-portfolio
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: taida-portfolio
+  template:
+    metadata:
+      labels:
+        app: taida-portfolio
+    spec:
+      imagePullSecrets:
+        - name: registry-pull
+      containers:
+        - name: taida-portfolio
+          image: registry.aquilla.dev/davud/taida-portfolio:latest  # TODO: pin a tag
+          ports:
+            - name: http
+              containerPort: 3000
+          securityContext:
+            readOnlyRootFilesystem: true   # parity with compose read_only
+          resources:
+            limits:
+              cpu: "1"
+              memory: 512Mi
+          readinessProbe:
+            tcpSocket:
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 10

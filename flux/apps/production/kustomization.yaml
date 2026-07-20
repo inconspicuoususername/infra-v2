@@ -11,3 +11,6 @@ resources:
   - authentik.yaml
   - perforce.yaml
   - registry.yaml
+  - abrabus.yaml
+  - aquilla-website.yaml
+  - taida-portfolio.yaml

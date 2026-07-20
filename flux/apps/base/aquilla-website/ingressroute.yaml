@@ -1,0 +1,17 @@
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: aquilla-website
+  namespace: aquilla-website
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`aquilla.dev`) || Host(`www.aquilla.dev`)
+      kind: Rule
+      services:
+        - name: aquilla-website
+          port: 6011
+  tls:
+    secretName: aquilla-website-tls

@@ -1,0 +1,40 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aquilla-website
+  namespace: aquilla-website
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: aquilla-website
+  template:
+    metadata:
+      labels:
+        app: aquilla-website
+    spec:
+      imagePullSecrets:
+        - name: registry-pull
+      containers:
+        - name: aquilla-website
+          image: registry.aquilla.dev/aquilla/aquilla-website:latest  # TODO: pin a tag
+          ports:
+            - name: http
+              containerPort: 6011
+          # SMTP_* for the contact form. Still points at mail.aquilla.dev
+          # (mailcow on server1) — switch to Purelymail SMTP before decommission.
+          envFrom:
+            - secretRef:
+                name: aquilla-website-smtp
+          securityContext:
+            readOnlyRootFilesystem: true   # parity with compose read_only
+          resources:
+            limits:
+              cpu: "1"
+              memory: 512Mi
+          readinessProbe:
+            tcpSocket:
+              port: 6011
+            initialDelaySeconds: 5
+            periodSeconds: 10

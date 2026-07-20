@@ -1,0 +1,13 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: aquilla-website
+  namespace: aquilla-website
+spec:
+  selector:
+    app: aquilla-website
+  ports:
+    - name: http
+      port: 6011
+      targetPort: http

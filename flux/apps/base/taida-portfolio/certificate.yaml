@@ -1,0 +1,16 @@
+# NOTE: issuance fails (HTTP-01) until taida.ink's DNS is cut over to the
+# cluster — the zone is NOT in the managed Cloudflare account (user action).
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: taida-portfolio-tls
+  namespace: taida-portfolio
+spec:
+  secretName: taida-portfolio-tls
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+  dnsNames:
+    - taida.ink
+    - www.taida.ink

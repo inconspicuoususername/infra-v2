@@ -1,0 +1,14 @@
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: aquilla-website-tls
+  namespace: aquilla-website
+spec:
+  secretName: aquilla-website-tls
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+  dnsNames:
+    - aquilla.dev
+    - www.aquilla.dev

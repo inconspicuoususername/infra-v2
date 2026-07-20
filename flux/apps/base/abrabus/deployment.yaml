@@ -1,0 +1,33 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: abrabus
+  namespace: abrabus
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: abrabus
+  template:
+    metadata:
+      labels:
+        app: abrabus
+    spec:
+      imagePullSecrets:
+        - name: registry-pull
+      containers:
+        - name: abrabus
+          image: registry.aquilla.dev/aquilla/abrabus:latest  # TODO: pin a tag
+          ports:
+            - name: http
+              containerPort: 6011
+          resources:
+            limits:
+              cpu: "1"
+              memory: 512Mi
+          readinessProbe:
+            tcpSocket:
+              port: 6011
+            initialDelaySeconds: 5
+            periodSeconds: 10
