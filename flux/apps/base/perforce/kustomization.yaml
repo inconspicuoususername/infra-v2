@@ -7,5 +7,6 @@ resources:
   - secret.yaml          # P4PASSWD (SOPS)
   - statefulset.yaml
   - service.yaml
+  - certificate.yaml
   - ingressroutetcp.yaml
 #  - backup.yaml

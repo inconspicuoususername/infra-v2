@@ -1,7 +1,9 @@
-# p4d speaks its own protocol (and does its own SSL via P4SSLDIR) on TCP 1666,
-# so this is a raw TCP route with TLS passthrough — Traefik does not terminate.
-# This is the direct k8s translation of your old traefik dynamic TCP router in
-# traefik/configs/dynamic/perforce-davud-io.yml.
+# Traefik TERMINATES TLS on the dedicated :1666 entrypoint with the LE cert
+# (perforce-tls) and forwards plain TCP to p4d, which runs plain tcp:1666.
+# This replaces server1's nginx-stream TLS termination. HostSNI(`*`) matches
+# every connection on the entrypoint (p4d owns it), so there's no dependency on
+# the client sending SNI — the fragility that broke the old L4 attempt.
+# Clients: p4 -p ssl:perforce.davud.io:1666 trust -y  (pins this cert's fingerprint).
 ---
 apiVersion: traefik.io/v1alpha1
 kind: IngressRouteTCP
@@ -17,4 +19,4 @@ spec:
         - name: p4d
           port: 1666
   tls:
-    passthrough: true
+    secretName: perforce-tls    # Traefik terminates (passthrough defaults to false)
