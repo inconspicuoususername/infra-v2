@@ -1,0 +1,18 @@
+# Bot runtime state (compose mounted ./runtime -> /app/runtime). Holds the
+# react-role mapping files (runtime/db/reactrole.*) — persistent, transplanted
+# from server1. Logs are NOT persisted (emptyDir in the Deployment).
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: johnjtac-runtime
+  namespace: johnjtac
+  annotations:
+    kustomize.toolkit.fluxcd.io/prune: disabled
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: openebs-hostpath
+  resources:
+    requests:
+      storage: 1Gi

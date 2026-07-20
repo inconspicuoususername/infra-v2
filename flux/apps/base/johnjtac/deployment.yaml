@@ -1,0 +1,64 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: johnjtac
+  namespace: johnjtac
+spec:
+  # PARKED at 0 replicas. The bot loads /app/sysprompt.txt, which is provided
+  # out-of-band via a Secret named "johnjtac-sysprompt" that is DELIBERATELY
+  # NOT in git (its content must never live in the repo). To bring the bot up:
+  #   kubectl create secret generic johnjtac-sysprompt -n johnjtac \
+  #       --from-file=sysprompt.txt=<local file>
+  # then set replicas: 1 (and reconcile).
+  replicas: 0
+  strategy:
+    type: Recreate            # single RWO runtime PVC — no two pods at once
+  selector:
+    matchLabels:
+      app: johnjtac
+  template:
+    metadata:
+      labels:
+        app: johnjtac
+    spec:
+      imagePullSecrets:
+        - name: registry-pull
+      containers:
+        - name: johnjtac
+          image: registry.aquilla.dev/davud/johnjtac:latest  # TODO: pin a tag
+          env:
+            # DATABASE_URL straight from the CNPG-generated app secret.
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: jtac-db-app
+                  key: uri
+            - name: GROK_SYSTEM_PROMPT_FILE
+              value: /app/sysprompt.txt
+          envFrom:
+            # Discord + xAI tokens and Grok config, carried from server1 .env.
+            - secretRef:
+                name: johnjtac-secret
+          volumeMounts:
+            - name: runtime
+              mountPath: /app/runtime
+            - name: logs
+              mountPath: /app/logs
+            - name: sysprompt
+              mountPath: /app/sysprompt.txt
+              subPath: sysprompt.txt
+              readOnly: true
+          resources:
+            limits:
+              cpu: "1"
+              memory: 512Mi
+      volumes:
+        - name: runtime
+          persistentVolumeClaim:
+            claimName: johnjtac-runtime
+        - name: logs
+          emptyDir: {}
+        - name: sysprompt
+          secret:
+            secretName: johnjtac-sysprompt   # NOT in git — apply out-of-band

@@ -1,0 +1,20 @@
+# CloudNativePG-managed Postgres for the John JTAC Discord bot.
+#
+# Source was a postgres:18 sidecar (db "jtac-db", accessed as the postgres
+# superuser with trivial creds). Here the app gets a least-privilege owner role
+# "jtac"; DATABASE_URL is read from the generated "jtac-db-app" secret.
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: jtac-db
+  namespace: johnjtac
+spec:
+  instances: 1
+  storage:
+    size: 3Gi
+    storageClass: openebs-hostpath
+  bootstrap:
+    initdb:
+      database: jtac-db
+      owner: jtac
