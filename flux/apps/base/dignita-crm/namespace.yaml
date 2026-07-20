@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dignita-crm
+  annotations:
+    # Never garbage-collected by Flux. This is a MOTHBALL: after the data is
+    # seeded, dignita-crm is removed from apps/production/kustomization.yaml so
+    # Flux prunes the workloads — but this namespace and the postgres PVC
+    # (both prune: disabled) survive, so re-adding the entry wakes it on the
+    # old data. No ingress/cert here; add those + crm.dignita.ba DNS on wake.
+    kustomize.toolkit.fluxcd.io/prune: disabled

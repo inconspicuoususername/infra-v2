@@ -1,0 +1,51 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dignita-crm
+  namespace: dignita-crm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dignita-crm
+  template:
+    metadata:
+      labels:
+        app: dignita-crm
+    spec:
+      imagePullSecrets:
+        - name: registry-pull
+      containers:
+        - name: dignita-crm
+          image: registry.aquilla.dev/aquilla/dignita-crm:latest  # TODO: pin a tag
+          ports:
+            - name: http
+              containerPort: 6011
+          envFrom:
+            # DATABASE_URL (host dignita-postgres), JWT_SECRET, PASSWORD_SALT,
+            # AWS creds — all carried from server1 (SOPS).
+            - secretRef:
+                name: dignita-crm-secret
+          readinessProbe:
+            tcpSocket:
+              port: 6011
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            limits:
+              cpu: "1"
+              memory: 512Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dignita-crm
+  namespace: dignita-crm
+spec:
+  selector:
+    app: dignita-crm
+  ports:
+    - name: http
+      port: 6011
+      targetPort: http

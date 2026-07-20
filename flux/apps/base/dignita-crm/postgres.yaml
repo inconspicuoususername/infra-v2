@@ -1,0 +1,77 @@
+# Plain postgres:17.5 (matches server1) for the dignita-crm mothball. Seeded via
+# pg_dump/restore, so the PVC starts empty and postgres inits fresh at the
+# default PGDATA. The PVC is prune: disabled, so the seeded data outlives the
+# mothball (workloads prune; data stays). Service is named "dignita-postgres"
+# to match the carried-over DATABASE_URL host.
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: dignita-postgres
+  namespace: dignita-crm
+  annotations:
+    kustomize.toolkit.fluxcd.io/prune: disabled
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: openebs-hostpath
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dignita-postgres
+  namespace: dignita-crm
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: dignita-postgres
+  template:
+    metadata:
+      labels:
+        app: dignita-postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:17.5
+          env:
+            - name: POSTGRES_USER
+              value: myuser
+            - name: POSTGRES_DB
+              value: mydatabase
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: dignita-crm-secret
+                  key: POSTGRES_PASSWORD
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", "myuser", "-d", "mydatabase"]
+            initialDelaySeconds: 10
+            periodSeconds: 10
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: dignita-postgres
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dignita-postgres
+  namespace: dignita-crm
+spec:
+  selector:
+    app: dignita-postgres
+  ports:
+    - port: 5432
+      targetPort: 5432
