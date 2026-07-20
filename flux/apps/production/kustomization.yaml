@@ -1,7 +1,13 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-# Production overlay. For a single environment this just pulls in the bases;
-# add patches here when a second environment (e.g. staging) appears.
+# Production apps: one Flux Kustomization per app, so each app can be
+# suspended, health-checked and torn down (pruned) independently.
+#
+# Mothball convention: to take an app down but keep its data, remove its entry
+# here — prune deletes the workloads, while namespaces/PVCs annotated with
+# `kustomize.toolkit.fluxcd.io/prune: disabled` (and hibernated CNPG clusters)
+# survive. Re-adding the entry brings the app back up on the old data.
 resources:
-  - ../base/authentik
-  - ../base/perforce
+  - authentik.yaml
+  - perforce.yaml
+  - registry.yaml

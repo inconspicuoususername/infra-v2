@@ -3,6 +3,7 @@ kind: Kustomization
 namespace: perforce
 resources:
   - namespace.yaml
+  - pull.secret.yaml     # docker-registry cred for registry.aquilla.dev (SOPS)
 #  - secret.yaml          # SOPS-encrypted (copy from secret.example.yaml)
   - statefulset.yaml
   - service.yaml

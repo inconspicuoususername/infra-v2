@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: perforce
+  name: registry
   annotations:
     # Never garbage-collected by Flux: deleting a namespace cascades into PVCs
     # and secrets. Tearing down the app must not take its data with it.

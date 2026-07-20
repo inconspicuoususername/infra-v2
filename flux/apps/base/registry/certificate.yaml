@@ -1,0 +1,16 @@
+# NOTE: issuance fails (HTTP-01) until registry.aquilla.dev's A record is cut
+# over from server1 to the cluster. Harmless — cert-manager retries with
+# backoff and the old registry keeps serving in the meantime.
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: registry-tls
+  namespace: registry
+spec:
+  secretName: registry-tls
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+  dnsNames:
+    - registry.aquilla.dev

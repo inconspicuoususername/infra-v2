@@ -20,6 +20,8 @@ spec:
       labels:
         app: p4d
     spec:
+      imagePullSecrets:
+        - name: registry-pull      # registry.aquilla.dev is htpasswd-auth'd
       containers:
         - name: p4d
           # your existing custom image

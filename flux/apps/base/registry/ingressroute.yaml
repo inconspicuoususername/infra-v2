@@ -1,0 +1,17 @@
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: registry
+  namespace: registry
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`registry.aquilla.dev`)
+      kind: Rule
+      services:
+        - name: registry
+          port: 5000
+  tls:
+    secretName: registry-tls

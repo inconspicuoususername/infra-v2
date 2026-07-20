@@ -1,0 +1,21 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: perforce
+  namespace: flux-system
+spec:
+  dependsOn:
+    - name: infra-configs        # Traefik CRDs (IngressRouteTCP)
+  interval: 30m
+  retryInterval: 1m
+  timeout: 5m
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  path: ./flux/apps/base/perforce
+  prune: true
+  decryption:
+    provider: sops
+    secretRef:
+      name: sops-age
