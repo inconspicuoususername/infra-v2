@@ -14,10 +14,7 @@ spec:
     kind: GitRepository
     name: flux-system
   path: ./flux/apps/production
-  # TEMPORARILY false: the apps tree just split into per-app Kustomizations and
-  # object ownership is migrating from this ks to its children. Flip back to
-  # true once every child Kustomization reports Ready.
-  prune: false
+  prune: true
   # Decrypt *.secret.yaml using the age key loaded as flux-system/sops-age
   decryption:
     provider: sops
