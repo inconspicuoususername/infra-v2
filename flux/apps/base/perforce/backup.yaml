@@ -21,7 +21,7 @@ spec:
           restartPolicy: OnFailure
           containers:
             - name: checkpoint
-              image: registry.aquilla.dev/davud/helix-p4d:latest   # has the p4 client
+              image: registry.aquilla.dev/davud/helix-p4d:0.0.12   # has the p4 client
               env:
                 - name: P4PORT
                   value: "p4d:1666"

@@ -25,7 +25,7 @@ spec:
       containers:
         - name: p4d
           # your existing custom image
-          image: registry.aquilla.dev/davud/helix-p4d:latest   # TODO: pin a tag
+          image: registry.aquilla.dev/davud/helix-p4d:0.0.12
           ports:
             - name: p4d
               containerPort: 1666

@@ -18,7 +18,7 @@ spec:
         - name: registry-pull
       containers:
         - name: aquilla-website
-          image: registry.aquilla.dev/aquilla/aquilla-website:latest  # TODO: pin a tag
+          image: registry.aquilla.dev/aquilla/aquilla-website:0.0.41
           ports:
             - name: http
               containerPort: 6011

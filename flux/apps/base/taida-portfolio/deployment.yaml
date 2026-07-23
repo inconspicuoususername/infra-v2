@@ -18,7 +18,7 @@ spec:
         - name: registry-pull
       containers:
         - name: taida-portfolio
-          image: registry.aquilla.dev/davud/taida-portfolio:latest  # TODO: pin a tag
+          image: registry.aquilla.dev/davud/taida-portfolio:0.0.15
           ports:
             - name: http
               containerPort: 3000
