@@ -43,6 +43,29 @@ spec:
     server:
       ingress:
         enabled: false                    # we route via Traefik IngressRoute
+      # Image already runs as uid=1000(authentik) by default; these just make
+      # it explicit/enforced instead of implicit. Not setting
+      # readOnlyRootFilesystem - chart's own values.yaml flags that as
+      # untested for authentik's own containers (only documented/tried on the
+      # optional GeoIP sidecar), and this is the SSO for everything else.
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+      containerSecurityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop: ["ALL"]
+
+    worker:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+      containerSecurityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop: ["ALL"]
 
     # Bundled Redis is fine (cache/session, not a backup concern).
     redis:

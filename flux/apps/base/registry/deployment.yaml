@@ -18,9 +18,22 @@ spec:
       labels:
         app: registry
     spec:
+      # registry:3 has no dedicated non-root user; run as nobody + fsGroup so
+      # the PVC (currently root-owned from running unhardened) becomes
+      # writable by the new uid at mount time.
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
+        fsGroup: 65534
       containers:
         - name: registry
           image: registry:3
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
           ports:
             - name: http
               containerPort: 5000
@@ -39,6 +52,8 @@ spec:
             - name: auth
               mountPath: /auth
               readOnly: true
+            - name: tmp
+              mountPath: /tmp
           readinessProbe:
             # /v2/ answers 401 without creds, so probe the socket instead
             tcpSocket:
@@ -52,3 +67,5 @@ spec:
         - name: auth
           secret:
             secretName: registry-auth
+        - name: tmp
+          emptyDir: {}
