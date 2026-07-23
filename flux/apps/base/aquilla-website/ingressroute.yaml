@@ -13,5 +13,8 @@ spec:
       services:
         - name: aquilla-website
           port: 6011
+      middlewares:
+        - name: security-headers
+          namespace: traefik
   tls:
     secretName: aquilla-website-tls

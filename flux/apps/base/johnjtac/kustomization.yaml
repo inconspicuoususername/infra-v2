@@ -8,3 +8,4 @@ resources:
   - postgres.yaml
   - pvc.yaml
   - deployment.yaml
+  - networkpolicy.yaml

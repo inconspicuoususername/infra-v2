@@ -6,4 +6,5 @@ resources:
   - metallb.yaml
   - openebs.yaml
   - traefik.yaml
+  - security-headers-middleware.yaml
   - cloudnative-pg.yaml

@@ -11,3 +11,4 @@ resources:
   - service.yaml
   - certificate.yaml
   - ingressroute.yaml
+  - networkpolicy.yaml

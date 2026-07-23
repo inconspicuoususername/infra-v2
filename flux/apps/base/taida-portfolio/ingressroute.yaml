@@ -13,5 +13,8 @@ spec:
       services:
         - name: taida-portfolio
           port: 3000
+      middlewares:
+        - name: security-headers
+          namespace: traefik
   tls:
     secretName: taida-portfolio-tls

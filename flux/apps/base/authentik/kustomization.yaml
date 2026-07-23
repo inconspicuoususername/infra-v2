@@ -9,3 +9,4 @@ resources:
   - helm.yaml
   - certificate.yaml
   - ingressroute.yaml
+  - networkpolicy.yaml

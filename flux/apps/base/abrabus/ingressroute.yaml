@@ -13,5 +13,8 @@ spec:
       services:
         - name: abrabus
           port: 6011
+      middlewares:
+        - name: security-headers
+          namespace: traefik
   tls:
     secretName: abrabus-tls

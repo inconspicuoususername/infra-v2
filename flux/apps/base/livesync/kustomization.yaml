@@ -7,3 +7,4 @@ resources:
   - pvc.yaml
   - couchdb.yaml
   - cloudflared.yaml
+  - networkpolicy.yaml

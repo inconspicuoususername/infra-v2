@@ -13,5 +13,8 @@ spec:
       services:
         - name: registry
           port: 5000
+      middlewares:
+        - name: security-headers
+          namespace: traefik
   tls:
     secretName: registry-tls
