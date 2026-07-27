@@ -5,6 +5,7 @@ metadata:
   name: renovate-job
   namespace: renovate
 spec:
+  image: renovate/renovate:43.285.0
   schedule: "0 * * * *"
   githubAppReference:
     secretName: "renovate-secret"
