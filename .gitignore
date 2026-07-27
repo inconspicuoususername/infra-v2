@@ -17,3 +17,4 @@ k0sctl/k0sctl.yaml
 .idea/
 .venv/
 __pycache__/
+CLAUDE.md

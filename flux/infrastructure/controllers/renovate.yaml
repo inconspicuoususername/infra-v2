@@ -1,0 +1,38 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: mogenius-repo
+  namespace: renovate
+spec:
+  interval: 24h
+  url: https://helm.mogenius.com/public
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: renovate-operator
+  namespace: renovate
+spec:
+  interval: 1h
+  chart:
+    spec:
+      chart: renovate-operator
+      version: "5.4.0"
+      sourceRef:
+        kind: HelmRepository
+        name: mogenius-repo
+  values:
+    auth:
+      oidc:
+        enabled: true
+        issuerUrl: "https://auth.davud.io/application/o/renovate/"
+        clientId: "dejXhWXjF1oLAXtxMwNqa5NpZzpymBUvbkBx3Fhc"
+        existingSecret: "renovate-secret"
+        secretKey: "CLIENT_SECRET"
+        redirectScheme: "https"
+    config:
+      jobTTLSecondsAfterFinished: 259200 #3 day retention for jobs
+    resources:
+      requests: { cpu: 50m, memory: 128Mi }
+      limits: { memory: 256Mi }

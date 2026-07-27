@@ -2,9 +2,35 @@
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
+  name: infra-base
+  namespace: flux-system
+spec:
+  interval: 1h
+  retryInterval: 1m
+  timeout: 5m
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  path: ./flux/infrastructure/base
+  prune: true
+  wait: true        # namespaces + secrets must land before any controller installs
+  # Infrastructure secrets are consumed by controllers at Helm install time (e.g.
+  # renovate-operator mounts its OIDC client secret via a non-optional
+  # secretKeyRef). Decrypting them in a layer *below* the controllers is what
+  # keeps that from deadlocking against infra-controllers' `wait: true`.
+  decryption:
+    provider: sops
+    secretRef:
+      name: sops-age
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
   name: infra-controllers
   namespace: flux-system
 spec:
+  dependsOn:
+    - name: infra-base
   interval: 1h
   retryInterval: 1m
   timeout: 5m
@@ -14,6 +40,7 @@ spec:
   path: ./flux/infrastructure/controllers
   prune: true
   wait: true        # wait for controllers to be Ready before configs/apps
+  # No decryption block: secrets belong in ../base, which reconciles first.
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization

@@ -1,5 +1,6 @@
 import logging.config
 import logging
+import colorlog
 
 LOGGING_CONFIG = {
     "version": 1,

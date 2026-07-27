@@ -13,6 +13,9 @@ def regen_k0sctl(host_list: list[StoredHost]):
             {
                 "role": host.k8.role,
                 "noTaints": host.k8.role == "controller+worker",
+                "installFlags": [
+                    "--profile=relaxed-disk"
+                ],
                 "ssh": {
                     "address": host.host,
                     "user": host.ssh.user,

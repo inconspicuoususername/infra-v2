@@ -1,0 +1,15 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+# Layer 0 of the in-cluster reconcile: core/v1 objects with no CRD dependencies
+# that everything above needs to already exist.
+#
+# Namespaces and Secrets live together because a Secret can't be applied into a
+# namespace that doesn't exist yet — splitting them would reintroduce the
+# ordering race this layer exists to remove.
+#
+# Only *infrastructure* secrets belong here. An app's secret stays in
+# apps/base/<app>/ so that pruning the app (the mothball pattern) prunes its
+# credentials with it.
+resources:
+  - namespaces.yaml
+  - renovate.secret.yaml

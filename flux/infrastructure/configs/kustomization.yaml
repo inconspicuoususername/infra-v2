@@ -1,5 +1,9 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
+# Custom resources whose CRDs are installed by ../controllers. Nothing here is
+# encrypted, so this layer needs no decryption block — renovatejob.yaml only
+# *references* a secret name, and that secret is created in ../base.
 resources:
   - cluster-issuer.yaml
   - metallb-pool.yaml
+  - renovatejob.yaml

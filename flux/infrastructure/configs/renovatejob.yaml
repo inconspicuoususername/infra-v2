@@ -1,0 +1,20 @@
+---
+apiVersion: renovate-operator.mogenius.com/v1alpha1
+kind: RenovateJob
+metadata:
+  name: renovate-job
+  namespace: renovate
+spec:
+  schedule: "0 * * * *"
+  githubAppReference:
+    secretName: "renovate-secret"
+    appIdSecretKey: "GH_APP_ID"
+    installationIdSecretKey: "GH_INSTALL_ID"
+    pemSecretKey: "GH_PKEY"
+  provider:
+    name: github
+  parallelism: 2
+  resources:
+    requests: { cpu: 100m, memory: 256Mi }
+    limits: { memory: 512Mi }
+  discoveryFilters: ["inconspicuoususername/infra-v2"]

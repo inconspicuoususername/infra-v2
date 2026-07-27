@@ -17,3 +17,4 @@ Requires `gitleaks` on PATH (`pacman -S gitleaks`/`brew install gitleaks`).
 ## Todo list for some other day
 - BGP MetalLB instead of ARP
 - Integrate router for things like auto dst NAT
+- Move SMB setup into pyinfra

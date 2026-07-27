@@ -28,6 +28,16 @@ metadata:
 apiVersion: v1
 kind: Namespace
 metadata:
+  # The mogenius chart ships no Namespace template (nearly no chart does —
+  # `--create-namespace` is a Helm CLI flag). It can't be created by the
+  # HelmRelease either: the HelmRelease/HelmRepository/Secret all *live* in
+  # this namespace, so it has to exist before Flux can apply them at all —
+  # which is why renovate.secret.yaml sits alongside this file, not a layer up.
+  name: renovate
+---
+apiVersion: v1
+kind: Namespace
+metadata:
   name: openebs
   # The hostpath provisioner's ephemeral helper pods bind-mount /var/openebs/local
   # via hostPath, which PSA baseline/restricted forbid; allow privileged here.
