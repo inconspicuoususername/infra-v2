@@ -20,7 +20,7 @@ spec:
         - name: registry-pull
       containers:
         - name: johnjtac
-          image: registry.aquilla.dev/davud/johnjtac:0.0.31
+          image: registry.aquilla.dev/davud/johnjtac:0.0.32
           env:
             # DATABASE_URL straight from the CNPG-generated app secret.
             - name: DATABASE_URL
