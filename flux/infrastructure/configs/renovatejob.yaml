@@ -17,5 +17,5 @@ spec:
   parallelism: 2
   resources:
     requests: { cpu: 100m, memory: 256Mi }
-    limits: { memory: 512Mi }
+    limits: { memory: 1Gi }
   discoveryFilters: ["inconspicuoususername/infra-v2"]
