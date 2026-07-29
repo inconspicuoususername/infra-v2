@@ -5,13 +5,7 @@ metadata:
   name: johnjtac
   namespace: johnjtac
 spec:
-  # PARKED at 0 replicas. The bot loads /app/sysprompt.txt, which is provided
-  # out-of-band via a Secret named "johnjtac-sysprompt" that is DELIBERATELY
-  # NOT in git (its content must never live in the repo). To bring the bot up:
-  #   kubectl create secret generic johnjtac-sysprompt -n johnjtac \
-  #       --from-file=sysprompt.txt=<local file>
-  # then set replicas: 1 (and reconcile).
-  replicas: 0
+  replicas: 1
   strategy:
     type: Recreate            # single RWO runtime PVC — no two pods at once
   selector:
