@@ -8,7 +8,7 @@ org-apache-logging-log4j-log4j-core = "2.25.4"
 org-apache-logging-log4j-log4j-slf4j2-impl = "2.25.4"
 org-junit-jupiter-junit-jupiter-api = "5.9.2"
 org-junit-jupiter-junit-jupiter-engine = "5.9.2"
-org-slf4j-slf4j-api = "2.0.17"
+org-slf4j-slf4j-api = "2.0.18"
 
 [libraries]
 io-javaoperatorsdk-operator-framework = { module = "io.javaoperatorsdk:operator-framework", version.ref = "io-javaoperatorsdk-operator-framework" }
