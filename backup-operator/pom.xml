@@ -34,7 +34,7 @@
         <slf4j.version>2.0.17</slf4j.version>
         <junit.version>5.9.2</junit.version>
         <log4j.version>2.25.4</log4j.version>
-        <fabric8-client.version>7.7.0</fabric8-client.version>
+        <fabric8-client.version>7.8.0</fabric8-client.version>
     </properties>
 
     <dependencyManagement>
