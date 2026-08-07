@@ -19,7 +19,7 @@ spec:
   chart:
     spec:
       chart: traefik
-      version: "41.0.0"
+      version: "41.2.0"
       sourceRef:
         kind: HelmRepository
         name: traefik           # same namespace, so sourceRef.namespace is omitted
