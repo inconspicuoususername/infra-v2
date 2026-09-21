@@ -33,6 +33,11 @@ spec:
       annotations:
         # Pin the VIP so DNS stays stable
         metallb.io/loadBalancerIPs: 10.24.1.251
+      spec:
+        # Announce the VIP only from the node actually running a Traefik pod. By default
+        # the external policy is Cluster, which means MetalLB can assign the VIP to other
+        # nodes on the netwrk
+        externalTrafficPolicy: Local
     ports:
       web:
         port: 8000
