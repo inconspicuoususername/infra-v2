@@ -1,0 +1,67 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dental-website
+  namespace: dental-website
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dental-website
+  template:
+    metadata:
+      labels:
+        app: dental-website
+    spec:
+      imagePullSecrets:
+        - name: registry-pull
+      containers:
+        - name: dental-website
+          image: registry.aquilla.dev/aquilla/dental-website:0.0.20
+          ports:
+            - name: http
+              containerPort: 3000
+          env:
+            # ref into CNPG generated secret
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: dental-website-db-app
+                  key: uri
+            # NextAuth v5 sits behind Traefik TLS termination; trust the proxy
+            # host and give it the public URL for OIDC redirects.
+            - name: AUTH_URL
+              value: https://chronos.aquilla.dev
+            - name: AUTH_TRUST_HOST
+              value: "true"
+          envFrom:
+            - secretRef:
+                name: dental-website-auth
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          # make only next cache writable
+          volumeMounts:
+            - name: next-cache
+              mountPath: /app/.next/cache
+            - name: tmp
+              mountPath: /tmp
+          resources:
+            limits:
+              cpu: "1"
+              memory: 512Mi
+          readinessProbe:
+            tcpSocket:
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+      volumes:
+        - name: next-cache
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}

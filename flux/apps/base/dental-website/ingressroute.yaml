@@ -1,0 +1,20 @@
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: dental-website
+  namespace: dental-website
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`chronos.aquilla.dev`)
+      kind: Rule
+      services:
+        - name: dental-website
+          port: 3000
+      middlewares:
+        - name: security-headers
+          namespace: traefik
+  tls:
+    secretName: dental-website-tls

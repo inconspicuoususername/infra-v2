@@ -13,6 +13,7 @@ resources:
   - registry.yaml
   - abrabus.yaml
   - aquilla-website.yaml
+  - dental-website.yaml
   - taida-portfolio.yaml
   - portfolio.yaml
   - johnjtac.yaml

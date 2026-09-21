@@ -1,0 +1,13 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: dental-website
+resources:
+  - namespace.yaml
+  - pull.secret.yaml
+  - auth.secret.yaml
+  - postgres.yaml
+  - deployment.yaml
+  - service.yaml
+  - certificate.yaml
+  - ingressroute.yaml
+  - networkpolicy.yaml
