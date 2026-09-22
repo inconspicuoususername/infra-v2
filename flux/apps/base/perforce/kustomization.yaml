@@ -8,5 +8,6 @@ resources:
   - statefulset.yaml
   - service.yaml
   - certificate.yaml
+  - tlsoption.yaml
   - ingressroutetcp.yaml
 #  - backup.yaml
