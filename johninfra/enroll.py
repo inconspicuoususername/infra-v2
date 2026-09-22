@@ -200,7 +200,7 @@ def main():
                 key_dir=host_data["ssh_key"],
             ),
             secrets=StoredHostSecrets(
-                ssh_key_password=host_data["ssh_key_password"],
+                ssh_key_password=host_data["ssh_key_password"] if "ssh_key_password" in host_data else None,
                 sudo_password=sudo_pass if len(sudo_pass) > 0 else None,
             )
         )

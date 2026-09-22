@@ -32,7 +32,7 @@ packageman.packages(
         "gnupg",
         "ca-certificates",
         "firewalld",
-        "chrony",            # time sync — k8s certs/tokens hate clock skew
+        "chrony",
         unattended_upgrades_pkg,
         "htop",
     ],
@@ -60,12 +60,32 @@ files.put(
         "net.ipv4.ip_forward                 = 1\n"
         "fs.inotify.max_user_instances       = 1280\n"
         "fs.inotify.max_user_watches         = 655360\n"
+        # rp_filter off: cross-node pod traffic rides an IPIP overlay over
+        # tailscale, and tailscale's policy routing (ip rule -> table 52) makes
+        # the reverse-path check drop legit hairpin/return packets even in loose
+        # mode (2). The effective value is max(all, per-iface) and kube-router's
+        # tunnel interfaces inherit `default`, so set both; existing interfaces
+        # are reset in the shell below. Symptom when missing: a service whose
+        # endpoint is on the other node hangs when reached via a node that isn't
+        # running the endpoint (nodePort/LoadBalancer with externalTrafficPolicy
+        # Cluster); the SYN reaches the peer's tunnel iface but is never answered.
+        "net.ipv4.conf.all.rp_filter         = 0\n"
+        "net.ipv4.conf.default.rp_filter     = 0\n"
     )),
     dest="/etc/sysctl.d/99-k0s.conf",
     create_remote_dir=True,
 )
 
-server.shell(name="Apply sysctl", commands=["sysctl --system"])
+server.shell(
+    name="Apply sysctl",
+    commands=[
+        "sysctl --system",
+        # `default` only takes effect for interfaces created afterward; reset the
+        # ones already up so a re-run applies without waiting for them to be
+        # recreated (kube-router's tun-* come up long after boot).
+        'for f in /proc/sys/net/ipv4/conf/*/rp_filter; do echo 0 > "$f"; done',
+    ],
+)
 
 # ── Time sync ─────────────────────────────────────────────────────────────
 systemd.service(
@@ -102,12 +122,41 @@ server.shell(
         # directly instead of falling back to DERP relays.
         "firewall-cmd --permanent --zone=trusted --add-interface=tailscale0",
         "firewall-cmd --permanent --add-port=41641/udp",
+        # Multi-node: node InternalIPs are tailscale, so kube-router routes
+        # cross-node pod traffic through an IPIP overlay over the tailnet. The
+        # decapsulated packets surface on the tunnel interface (not tailscale0)
+        # sourced from the peer NODE's tailscale IP (not the pod CIDR), so trust
+        # the tailnet CGNAT range as a source — otherwise host->pod flows across
+        # nodes (e.g. apiserver -> a webhook pod on the other node) land in the
+        # default zone and get rejected. (Requires the tailnet ACL to permit
+        # proto ipv4/IPIP between nodes; that's set in the Tailscale admin panel,
+        # not here.)
+        "firewall-cmd --permanent --zone=trusted --add-source=100.64.0.0/10",  # tailnet CGNAT
         # public services (ssh is already allowed by the default zone)
         "firewall-cmd --permanent --add-port=80/tcp",    # traefik http (ACME http-01 + redirect)
         "firewall-cmd --permanent --add-port=443/tcp",   # traefik https
         "firewall-cmd --permanent --add-port=1666/tcp",  # perforce (p4d)
         "firewall-cmd --permanent --add-port=6443/tcp",  # kube API (remove if you only use kubectl over tailscale)
         "firewall-cmd --reload",
+    ],
+)
+
+# ── Repair CNI after the firewall reload ──────────────────────────────────
+# `firewall-cmd --reload` rebuilds the nftables ruleset and flushes the chains
+# and ipsets kube-router owns (the firewalld-vs-CNI conflict). It does NOT
+# reliably re-sync: a dropped pod-masquerade ipset silently severs pod->internet
+# egress (pods leave with their un-NATed 10.244.x source), which breaks external
+# DNS and Flux. If k0s is up on this node, bounce the local kube-router so it
+# repopulates — killing its process is enough; the kubelet restarts the
+# container. Guarded on the k0s service so it's a no-op on a host not yet in the
+# cluster (fresh provision, before k0s exists). pkill -x matches the exact
+# process name, so it can't match this shell.
+server.shell(
+    name="Bounce kube-router after firewall reload (if k0s is running)",
+    commands=[
+        "if systemctl is-active --quiet k0scontroller "
+        "|| systemctl is-active --quiet k0sworker; "
+        "then pkill -x kube-router || true; fi",
     ],
 )
 
