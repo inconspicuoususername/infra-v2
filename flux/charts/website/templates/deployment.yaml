@@ -8,11 +8,11 @@ spec:
   replicas: 1
   {{- if .Values.persistence }}
   strategy:
-    type: Recreate            # RWO volume — no two pods at once
+    type: Recreate   # one writer on the PVC at a time; costs a few seconds of downtime per deploy
   {{- end }}
   selector:
     matchLabels:
-      app: {{ .Release.Name }}   # immutable; must match pre-chart Deployments
+      {{- include "website.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:

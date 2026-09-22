@@ -17,7 +17,7 @@ spec:
   driftDetection:
     mode: enabled
   values:
-    image: registry.aquilla.dev/aquilla/aquilla-website:0.0.42
+    image: registry.aquilla.dev/aquilla/aquilla-website:0.0.44
     port: 6011
     hosts: [aquilla.dev, www.aquilla.dev]
     envFromSecrets:
