@@ -2,7 +2,8 @@
 app: {{ .Release.Name }}
 app.kubernetes.io/name: {{ .Release.Name }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
-helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+{{- /* No helm.sh/chart label: with reconcileStrategy Revision the chart version
+carries the git sha (invalid "+" in labels) and would restart pods on every commit. */}}
 {{- end }}
 
 {{/* "/app/.next/cache" -> "rw-app-next-cache" */}}
