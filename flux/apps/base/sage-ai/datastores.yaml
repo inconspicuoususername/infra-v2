@@ -1,7 +1,7 @@
-# Milvus triad (etcd + minio + milvus-standalone) + the two app databases
-# (MSSQL demo, postgres assistant-db). Service names match the compose service
-# names so the internal URLs resolve (etcd:2379, minio:9000, milvus-standalone,
-# sqlserver:1433, assistant-db:5432). All Recreate (single RWO PVC each).
+# Milvus triad (etcd + minio + milvus-standalone) + the MSSQL demo database.
+# Service names match the compose service names so the internal URLs resolve
+# (etcd:2379, minio:9000, milvus-standalone, sqlserver:1433). All Recreate
+# (single RWO PVC each). The app's postgres (assistant-db) is CNPG: postgres.yaml.
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -127,33 +127,3 @@ metadata: {name: sqlserver, namespace: sage-ai}
 spec:
   selector: {app: sqlserver}
   ports: [{name: mssql, port: 1433, targetPort: 1433}]
----
-apiVersion: apps/v1
-kind: Deployment
-metadata: {name: assistant-db, namespace: sage-ai}
-spec:
-  replicas: 1
-  strategy: {type: Recreate}
-  selector: {matchLabels: {app: assistant-db}}
-  template:
-    metadata: {labels: {app: assistant-db}}
-    spec:
-      containers:
-        - name: postgres
-          image: postgres:18
-          env:
-            - {name: POSTGRES_USER, value: postgres}
-            - {name: POSTGRES_DB, value: assistant-db}
-            - {name: POSTGRES_PASSWORD, valueFrom: {secretKeyRef: {name: sage-secret, key: POSTGRES_PASSWORD}}}
-          ports: [{containerPort: 5432}]
-          volumeMounts: [{name: data, mountPath: /var/lib/postgresql}]
-          resources: {limits: {memory: 512Mi}}
-      volumes:
-        - {name: data, persistentVolumeClaim: {claimName: sage-pg}}
----
-apiVersion: v1
-kind: Service
-metadata: {name: assistant-db, namespace: sage-ai}
-spec:
-  selector: {app: assistant-db}
-  ports: [{name: pg, port: 5432, targetPort: 5432}]

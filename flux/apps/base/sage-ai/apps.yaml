@@ -1,5 +1,5 @@
 # App tier. sage-frontend (3000) -> sage-backend (8080, .NET) -> alija-data
-# (6161, talks to milvus) + assistant-db (postgres, via DB_URL). No ingress in
+# (6161, talks to milvus) + sage-ai-db (CNPG postgres, see postgres.yaml). No ingress in
 # the mothball; add it + sage-ai.aquilla.dev DNS on wake.
 ---
 apiVersion: apps/v1
@@ -50,7 +50,10 @@ spec:
             - {name: ASPNETCORE_URLS, value: "http://0.0.0.0:8080"}
             - {name: AlijaData__Url, value: "http://alija-data:6161"}
             - {name: OpenAI__ApiKey, valueFrom: {secretKeyRef: {name: sage-secret, key: OPENAI_API_KEY}}}
-            - {name: ConnectionStrings__AppDatabase, valueFrom: {secretKeyRef: {name: sage-secret, key: DB_URL}}}
+            # Npgsql wants key=value, which the CNPG secret doesn't provide; build it
+            # from the secret's password ($(VAR) only sees vars defined above it).
+            - {name: DB_PASSWORD, valueFrom: {secretKeyRef: {name: sage-ai-db-app, key: password}}}
+            - {name: ConnectionStrings__AppDatabase, value: "Host=sage-ai-db-rw;Port=5432;Username=sage;Password=$(DB_PASSWORD);Database=assistant-db;Pooling=true;Trust Server Certificate=true"}
           ports: [{containerPort: 8080}]
           readinessProbe:
             httpGet: {path: /api/health, port: 8080}

@@ -4,6 +4,6 @@ namespace: dignita-crm
 resources:
   - namespace.yaml
   - pull.secret.yaml     # docker-registry cred for registry.aquilla.dev (SOPS)
-  - secret.yaml          # web env + postgres password (SOPS)
+  - secret.yaml          # web env: JWT/salt/AWS (SOPS)
   - postgres.yaml
   - deployment.yaml

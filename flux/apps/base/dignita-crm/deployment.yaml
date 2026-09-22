@@ -22,9 +22,14 @@ spec:
           ports:
             - name: http
               containerPort: 6011
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: dignita-crm-db-app
+                  key: uri
           envFrom:
-            # DATABASE_URL (host dignita-postgres), JWT_SECRET, PASSWORD_SALT,
-            # AWS creds — all carried from server1 (SOPS).
+            # JWT_SECRET, PASSWORD_SALT, AWS creds — carried from server1 (SOPS).
             - secretRef:
                 name: dignita-crm-secret
           readinessProbe:

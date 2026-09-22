@@ -1,9 +1,49 @@
-# Plain postgres:17.5 (matches server1) for the dignita-crm mothball. Seeded via
-# pg_dump/restore, so the PVC starts empty and postgres inits fresh at the
-# default PGDATA. The PVC is prune: disabled, so the seeded data outlives the
-# mothball (workloads prune; data stays). Service is named "dignita-postgres"
-# to match the carried-over DATABASE_URL host.
+# CloudNativePG Postgres for dignita-crm. Restored (pg_dump -> pg_restore) from
+# the old plain postgres:17.5 into CNPG's default major. The app reads
+# DATABASE_URL from the generated "dignita-crm-db-app" secret.
+#
+# MOTHBALL: hibernated (pods stopped, PVCs kept) and prune-disabled, because a
+# pruned Cluster deletes its own PVCs. To wake: drop the hibernation annotation.
 ---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: dignita-crm-db
+  namespace: dignita-crm
+  annotations:
+    cnpg.io/hibernation: "on"
+    kustomize.toolkit.fluxcd.io/prune: disabled
+spec:
+  instances: 1
+  storage:
+    size: 2Gi
+    storageClass: openebs-hostpath
+  bootstrap:
+    initdb:
+      database: mydatabase
+      owner: myuser
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: dignita-crm-db-ingress
+  namespace: dignita-crm
+spec:
+  podSelector:
+    matchLabels:
+      cnpg.io/cluster: dignita-crm-db
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector: {}
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: cnpg-system
+---
+# Pre-CNPG data (plain postgres:17.5, owned by uid 999). Kept as a fallback
+# until dignita-crm has run against dignita-crm-db after a wake; then delete
+# this and the PVC by hand.
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -18,60 +58,3 @@ spec:
   resources:
     requests:
       storage: 2Gi
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: dignita-postgres
-  namespace: dignita-crm
-spec:
-  replicas: 1
-  strategy:
-    type: Recreate
-  selector:
-    matchLabels:
-      app: dignita-postgres
-  template:
-    metadata:
-      labels:
-        app: dignita-postgres
-    spec:
-      containers:
-        - name: postgres
-          image: postgres:17.5
-          env:
-            - name: POSTGRES_USER
-              value: myuser
-            - name: POSTGRES_DB
-              value: mydatabase
-            - name: POSTGRES_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: dignita-crm-secret
-                  key: POSTGRES_PASSWORD
-          ports:
-            - containerPort: 5432
-          volumeMounts:
-            - name: data
-              mountPath: /var/lib/postgresql/data
-          readinessProbe:
-            exec:
-              command: ["pg_isready", "-U", "myuser", "-d", "mydatabase"]
-            initialDelaySeconds: 10
-            periodSeconds: 10
-      volumes:
-        - name: data
-          persistentVolumeClaim:
-            claimName: dignita-postgres
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: dignita-postgres
-  namespace: dignita-crm
-spec:
-  selector:
-    app: dignita-postgres
-  ports:
-    - port: 5432
-      targetPort: 5432

@@ -4,7 +4,8 @@ namespace: sage-ai
 resources:
   - namespace.yaml
   - pull.secret.yaml     # docker-registry cred for registry.aquilla.dev (SOPS)
-  - secret.yaml          # OpenAI/DB/MSSQL/MinIO creds (SOPS)
+  - secret.yaml          # OpenAI/MSSQL/MinIO creds (SOPS)
   - pvc.yaml
-  - datastores.yaml      # etcd, minio, milvus-standalone, sqlserver, assistant-db
+  - datastores.yaml      # etcd, minio, milvus-standalone, sqlserver
+  - postgres.yaml        # CNPG sage-ai-db (hibernated)
   - apps.yaml            # alija-data, sage-backend, sage-frontend

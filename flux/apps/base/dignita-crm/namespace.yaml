@@ -3,14 +3,15 @@ kind: Namespace
 metadata:
   name: dignita-crm
   labels:
-    # warn/audit only: mothballed and untested under PSA (sage-ai's milvus needs
-    # Unconfined seccomp; dignita's postgres entrypoint needs root). Revisit on wake.
+    # warn/audit only: the app image's runtime user is unverified (mothballed,
+    # never run under PSA). The CNPG db already meets restricted. Revisit on wake.
     pod-security.kubernetes.io/warn: restricted
     pod-security.kubernetes.io/audit: restricted
   annotations:
     # Never garbage-collected by Flux. This is a MOTHBALL: after the data is
     # seeded, dignita-crm is removed from apps/production/kustomization.yaml so
-    # Flux prunes the workloads — but this namespace and the postgres PVC
-    # (both prune: disabled) survive, so re-adding the entry wakes it on the
-    # old data. No ingress/cert here; add those + crm.dignita.ba DNS on wake.
+    # Flux prunes the workloads — but this namespace and the hibernated CNPG
+    # cluster dignita-crm-db (both prune: disabled) survive. To wake: re-add the
+    # entry AND drop the cnpg.io/hibernation annotation in postgres.yaml.
+    # No ingress/cert here; add those + crm.dignita.ba DNS on wake.
     kustomize.toolkit.fluxcd.io/prune: disabled

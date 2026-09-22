@@ -3,14 +3,15 @@ kind: Namespace
 metadata:
   name: sage-ai
   labels:
-    # warn/audit only: mothballed and untested under PSA (sage-ai's milvus needs
-    # Unconfined seccomp; dignita's postgres entrypoint needs root). Revisit on wake.
+    # warn/audit only: milvus needs Unconfined seccomp (not even baseline allows
+    # it), and the other images are unverified under PSA. The CNPG db meets restricted.
     pod-security.kubernetes.io/warn: restricted
     pod-security.kubernetes.io/audit: restricted
   annotations:
     # MOTHBALL (see apps/production/kustomization.yaml). Full Milvus stack:
     # frontend + backend + alija-data + MSSQL + postgres + etcd + minio +
     # milvus-standalone. After seeding, sage-ai is removed from production so
-    # Flux prunes the workloads; this namespace + the 6 data PVCs (all
-    # prune: disabled) survive. Re-add the entry to wake it on the old data.
+    # Flux prunes the workloads; this namespace, the data PVCs and the
+    # hibernated CNPG cluster sage-ai-db (all prune: disabled) survive. To wake:
+    # re-add the entry AND drop the cnpg.io/hibernation annotation in postgres.yaml.
     kustomize.toolkit.fluxcd.io/prune: disabled

@@ -12,6 +12,8 @@ spec:
   accessModes: [ReadWriteOnce]
   storageClassName: openebs-hostpath
   resources: {requests: {storage: 2Gi}}
+# Pre-CNPG assistant-db data (plain postgres:18). Kept as a fallback until
+# sage-ai has run against sage-ai-db after a wake; then delete this and the PVC.
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim

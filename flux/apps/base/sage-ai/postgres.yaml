@@ -1,0 +1,43 @@
+# CloudNativePG Postgres for sage-ai (the backend's "assistant-db"). Restored
+# (pg_dump -> pg_restore) from the old plain postgres:18 on PVC sage-pg.
+# sage-backend builds its Npgsql connection string from the generated
+# "sage-ai-db-app" secret (see apps.yaml).
+#
+# MOTHBALL: hibernated (pods stopped, PVCs kept) and prune-disabled, because a
+# pruned Cluster deletes its own PVCs. To wake: drop the hibernation annotation.
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: sage-ai-db
+  namespace: sage-ai
+  annotations:
+    cnpg.io/hibernation: "on"
+    kustomize.toolkit.fluxcd.io/prune: disabled
+spec:
+  instances: 1
+  storage:
+    size: 1Gi
+    storageClass: openebs-hostpath
+  bootstrap:
+    initdb:
+      database: assistant-db
+      owner: sage
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: sage-ai-db-ingress
+  namespace: sage-ai
+spec:
+  podSelector:
+    matchLabels:
+      cnpg.io/cluster: sage-ai-db
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector: {}
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: cnpg-system
