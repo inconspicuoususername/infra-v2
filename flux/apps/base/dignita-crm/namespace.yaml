@@ -2,6 +2,10 @@ apiVersion: v1
 kind: Namespace
 metadata:
   name: dignita-crm
+  labels:
+    # warn/audit only: current pods don't meet restricted yet; switch to enforce once they do.
+    pod-security.kubernetes.io/warn: restricted
+    pod-security.kubernetes.io/audit: restricted
   annotations:
     # Never garbage-collected by Flux. This is a MOTHBALL: after the data is
     # seeded, dignita-crm is removed from apps/production/kustomization.yaml so

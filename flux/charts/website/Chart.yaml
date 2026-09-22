@@ -1,0 +1,5 @@
+apiVersion: v2
+name: website
+description: Hardened single-container website (Next.js et al.) with optional CNPG Postgres.
+type: application
+version: 0.1.0

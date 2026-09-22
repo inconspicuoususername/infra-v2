@@ -1,0 +1,88 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}
+  labels:
+    {{- include "website.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  {{- if .Values.persistence }}
+  strategy:
+    type: Recreate            # RWO volume — no two pods at once
+  {{- end }}
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}   # immutable; must match pre-chart Deployments
+  template:
+    metadata:
+      labels:
+        {{- include "website.labels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecret }}
+      imagePullSecrets:
+        - name: {{ . }}
+      {{- end }}
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: {{ .Values.runAsUser }}
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: {{ .Release.Name }}
+          image: {{ .Values.image }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.port }}
+          {{- if or .Values.database.enabled .Values.env }}
+          env:
+            {{- if .Values.database.enabled }}
+            - name: {{ .Values.database.envVar }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-db-app
+                  key: uri
+            {{- end }}
+            {{- range $k, $v := .Values.env }}
+            - name: {{ $k }}
+              value: {{ $v | quote }}
+            {{- end }}
+          {{- end }}
+          {{- with .Values.envFromSecrets }}
+          envFrom:
+            {{- range . }}
+            - secretRef:
+                name: {{ . }}
+            {{- end }}
+          {{- end }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            {{- range .Values.writablePaths }}
+            - name: {{ include "website.volName" . }}
+              mountPath: {{ . }}
+            {{- end }}
+            {{- range $name, $p := .Values.persistence }}
+            - name: {{ $name }}
+              mountPath: {{ $p.mountPath }}
+            {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          readinessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+      volumes:
+        {{- range .Values.writablePaths }}
+        - name: {{ include "website.volName" . }}
+          emptyDir: {}
+        {{- end }}
+        {{- range $name, $p := .Values.persistence }}
+        - name: {{ $name }}
+          persistentVolumeClaim:
+            claimName: {{ $.Release.Name }}-{{ $name }}
+        {{- end }}

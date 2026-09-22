@@ -1,0 +1,64 @@
+{{- /*
+Everything here carries helm.sh/resource-policy: keep, so `helm uninstall`
+(= removing the app from apps/production, the mothball pattern) leaves the
+data behind. Flux's kustomize prune annotation does NOT protect Helm-owned objects.
+*/ -}}
+{{- range $name, $p := .Values.persistence }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ $.Release.Name }}-{{ $name }}
+  labels:
+    {{- include "website.labels" $ | nindent 4 }}
+  annotations:
+    helm.sh/resource-policy: keep
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: openebs-hostpath
+  resources:
+    requests:
+      storage: {{ $p.size }}
+{{- end }}
+{{- if .Values.database.enabled }}
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: {{ .Release.Name }}-db
+  labels:
+    {{- include "website.labels" . | nindent 4 }}
+  annotations:
+    helm.sh/resource-policy: keep
+spec:
+  instances: {{ .Values.database.instances }}
+  storage:
+    size: {{ .Values.database.size }}
+    storageClass: openebs-hostpath
+  bootstrap:
+    initdb:
+      database: {{ .Values.database.name }}
+      owner: {{ .Values.database.owner }}
+  # No `backup:` block — logical dump + borg (see CLAUDE.md, Backups).
+---
+# DB reachable only from this namespace's pods + the CNPG operator.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ .Release.Name }}-db-ingress
+  labels:
+    {{- include "website.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      cnpg.io/cluster: {{ .Release.Name }}-db
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector: {}
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: cnpg-system
+{{- end }}

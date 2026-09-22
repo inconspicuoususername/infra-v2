@@ -2,6 +2,9 @@ apiVersion: v1
 kind: Namespace
 metadata:
   name: taida-portfolio
+  labels:
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/warn: restricted
   annotations:
     # Never garbage-collected by Flux: deleting a namespace cascades into PVCs
     # and secrets. Tearing down the app must not take its data with it.

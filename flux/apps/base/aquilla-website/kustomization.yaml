@@ -5,7 +5,4 @@ resources:
   - namespace.yaml
   - pull.secret.yaml     # docker-registry cred for registry.aquilla.dev (SOPS)
   - smtp.secret.yaml     # SMTP_* env for the contact form (SOPS)
-  - deployment.yaml
-  - service.yaml
-  - certificate.yaml
-  - ingressroute.yaml
+  - helmrelease.yaml     # website chart: flux/charts/website

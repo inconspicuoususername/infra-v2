@@ -5,9 +5,4 @@ resources:
   - namespace.yaml
   - pull.secret.yaml
   - auth.secret.yaml
-  - postgres.yaml
-  - deployment.yaml
-  - service.yaml
-  - certificate.yaml
-  - ingressroute.yaml
-  - networkpolicy.yaml
+  - helmrelease.yaml     # website chart: flux/charts/website

@@ -1,0 +1,24 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: taida-portfolio
+  namespace: taida-portfolio
+spec:
+  interval: 30m
+  chart:
+    spec:
+      chart: ./flux/charts/website
+      reconcileStrategy: Revision   # rebuild on every git change, not only on Chart.yaml version bumps
+      sourceRef:
+        kind: GitRepository
+        name: flux-system
+        namespace: flux-system
+  driftDetection:
+    mode: enabled
+  values:
+    image: registry.aquilla.dev/davud/taida-portfolio:0.0.15
+    port: 3000
+    # NOTE: cert issuance (HTTP-01) fails until taida.ink's DNS is cut over to
+    # the cluster — the zone is NOT in the managed Cloudflare account.
+    hosts: [taida.ink, www.taida.ink]

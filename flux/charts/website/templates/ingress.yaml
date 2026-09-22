@@ -1,0 +1,48 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}
+  labels:
+    {{- include "website.labels" . | nindent 4 }}
+spec:
+  selector:
+    app: {{ .Release.Name }}
+  ports:
+    - name: http
+      port: {{ .Values.port }}
+      targetPort: http
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ .Release.Name }}-tls
+  labels:
+    {{- include "website.labels" . | nindent 4 }}
+spec:
+  secretName: {{ .Release.Name }}-tls
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+  dnsNames:
+    {{- toYaml .Values.hosts | nindent 4 }}
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: {{ .Release.Name }}
+  labels:
+    {{- include "website.labels" . | nindent 4 }}
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: {{ $hosts := list }}{{ range .Values.hosts }}{{ $hosts = append $hosts (printf "Host(`%s`)" .) }}{{ end }}{{ join " || " $hosts }}
+      kind: Rule
+      services:
+        - name: {{ .Release.Name }}
+          port: {{ .Values.port }}
+      middlewares:
+        - name: security-headers
+          namespace: traefik
+  tls:
+    secretName: {{ .Release.Name }}-tls

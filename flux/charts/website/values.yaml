@@ -1,0 +1,38 @@
+# Full image ref as one string — Renovate's kubernetes manager matches `image:` lines.
+image: ""
+port: 3000
+# Hosts served by the IngressRoute and covered by the Certificate.
+hosts: []
+
+# Numeric UID is required: runAsNonRoot can't verify a named USER (e.g. `nextjs`).
+runAsUser: 1001
+
+imagePullSecret: registry-pull
+
+# Plain env vars, name -> value.
+env: {}
+# Secrets exposed wholesale via envFrom.
+envFromSecrets: []
+
+# Root FS is read-only; these get an emptyDir each.
+writablePaths:
+  - /app/.next/cache
+  - /tmp
+
+resources:
+  limits:
+    cpu: "1"
+    memory: 512Mi
+
+# PVCs, name -> {mountPath, size}. PVC is named <release>-<name>.
+# Any entry switches the Deployment to Recreate (RWO volume).
+persistence: {}
+
+# CNPG Postgres. The app gets DATABASE_URL from the generated <release>-db-app secret.
+database:
+  enabled: false
+  name: ""
+  owner: ""
+  size: 5Gi
+  instances: 1
+  envVar: DATABASE_URL
