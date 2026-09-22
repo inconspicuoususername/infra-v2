@@ -26,6 +26,8 @@ spec:
         runAsUser: 65534
         runAsGroup: 65534
         fsGroup: 65534
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: registry
           image: registry:3

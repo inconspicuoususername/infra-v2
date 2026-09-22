@@ -17,9 +17,17 @@ spec:
       labels:
         app: cloudflared
     spec:
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: cloudflared
           image: cloudflare/cloudflared:latest   # TODO: pin a tag
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
           args:
             - tunnel
             - --no-autoupdate

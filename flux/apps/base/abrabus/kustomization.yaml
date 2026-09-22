@@ -4,7 +4,4 @@ namespace: abrabus
 resources:
   - namespace.yaml
   - pull.secret.yaml     # docker-registry cred for registry.aquilla.dev (SOPS)
-  - deployment.yaml
-  - service.yaml
-  - certificate.yaml
-  - ingressroute.yaml
+  - helmrelease.yaml     # website chart: flux/charts/website

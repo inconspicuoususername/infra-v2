@@ -18,9 +18,22 @@ spec:
     spec:
       imagePullSecrets:
         - name: registry-pull
+      # Image has no USER (runs as root); run as node:1000 from the node base
+      # image. fsGroup makes the root-owned runtime PVC group-writable.
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: johnjtac
           image: registry.aquilla.dev/davud/johnjtac:0.0.34
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
           env:
             # DATABASE_URL straight from the CNPG-generated app secret.
             - name: DATABASE_URL

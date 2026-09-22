@@ -17,12 +17,19 @@ spec:
         app: couchdb
     spec:
       securityContext:
+        runAsNonRoot: true
         runAsUser: 5984        # couchdb user (uid in the official image)
         runAsGroup: 5984
         fsGroup: 5984          # make the mounted PVCs writable by couchdb
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: couchdb
           image: couchdb:3.5.2   # patch bump only, same on-disk format as server1's 3.5.1
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
           # No COUCHDB_USER/PASSWORD: the admin (davud), CORS, uuid and auth
           # secret are all carried in the transplanted etc/local.d config.
           ports:

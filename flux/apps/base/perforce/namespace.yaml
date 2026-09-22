@@ -3,7 +3,9 @@ kind: Namespace
 metadata:
   name: perforce
   labels:
-    # warn/audit only: current pods don't meet restricted yet; switch to enforce once they do.
+    # p4d's entrypoint needs root + SETUID/SETGID (chown, gosu drop to perforce),
+    # so restricted is out of reach without changing the image; baseline holds.
+    pod-security.kubernetes.io/enforce: baseline
     pod-security.kubernetes.io/warn: restricted
     pod-security.kubernetes.io/audit: restricted
   annotations:

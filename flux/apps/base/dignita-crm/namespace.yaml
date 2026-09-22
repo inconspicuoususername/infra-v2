@@ -3,7 +3,8 @@ kind: Namespace
 metadata:
   name: dignita-crm
   labels:
-    # warn/audit only: current pods don't meet restricted yet; switch to enforce once they do.
+    # warn/audit only: mothballed and untested under PSA (sage-ai's milvus needs
+    # Unconfined seccomp; dignita's postgres entrypoint needs root). Revisit on wake.
     pod-security.kubernetes.io/warn: restricted
     pod-security.kubernetes.io/audit: restricted
   annotations:
