@@ -71,6 +71,24 @@ files.put(
         # Cluster); the SYN reaches the peer's tunnel iface but is never answered.
         "net.ipv4.conf.all.rp_filter         = 0\n"
         "net.ipv4.conf.default.rp_filter     = 0\n"
+        # Needed on top of `default`: Fedora ships `net.ipv4.conf.*.rp_filter = 2`
+        # and udev re-applies sysctl.d to every interface as it appears, so
+        # kube-router's tun-* come up as 2 after each boot unless the same
+        # wildcard is overridden here.
+        "net.ipv4.conf.*.rp_filter           = 0\n"
+        # A node's own TCP to a tailnet tier IP (image pulls from the registry,
+        # anything on the host calling auth.davud.io) sizes segments for
+        # tailscale0 (MTU 1280); kube-proxy then DNATs it into the overlay
+        # tunnel (MTU 1260). The kernel does raise ICMP "fragmentation needed",
+        # but after NAT reversal it carries the tier IP (100.64/10) as source
+        # and arrives on lo, where tailscaled's own anti-spoofing rule
+        # (ts-input: drop 100.64.0.0/10 not from tailscale0) discards it. So
+        # path-MTU discovery can never work for these flows: TCP connects, then
+        # the first full-size segment (a TLS ClientHello is enough) hangs.
+        # 2 = always probe the path MTU up from tcp_base_mss instead of relying
+        # on ICMP. Mode 1 did not recover when tested. That chain is owned and
+        # rewritten by tailscaled, so don't try to punch a hole in it.
+        "net.ipv4.tcp_mtu_probing            = 2\n"
     )),
     dest="/etc/sysctl.d/99-k0s.conf",
     create_remote_dir=True,
