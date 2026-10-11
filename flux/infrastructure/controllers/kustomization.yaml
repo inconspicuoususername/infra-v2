@@ -10,3 +10,5 @@ resources:
   - security-headers-middleware.yaml
   - cloudnative-pg.yaml
   - renovate.yaml
+  - tailscale-operator.yaml
+  - external-dns.yaml

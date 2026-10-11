@@ -1,0 +1,56 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: external-dns
+  namespace: external-dns
+spec:
+  interval: 24h
+  url: https://kubernetes-sigs.github.io/external-dns/
+---
+# Publishes tailnet-only hostnames to Cloudflare: for every LoadBalancer
+# Service carrying an `external-dns.alpha.kubernetes.io/hostname` annotation
+# (see ../configs/tailnet-services.yaml) it keeps an A record pointing at the
+# Service's tailnet IP. It only ever touches records it created (tracked by
+# TXT ownership records), so the hand-made CNAME chains are left alone.
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: external-dns
+  namespace: external-dns
+spec:
+  interval: 1h
+  chart:
+    spec:
+      chart: external-dns
+      version: "1.23.0"
+      sourceRef:
+        kind: HelmRepository
+        name: external-dns
+  values:
+    provider:
+      name: cloudflare
+    env:
+      - name: CF_API_TOKEN
+        valueFrom:
+          secretKeyRef:
+            name: cloudflare-api-token
+            key: api-token
+    sources:
+      - service
+    extraArgs:
+      - --service-type-filter=LoadBalancer
+    domainFilters:
+      - davud.io
+      - aquilla.dev
+    # The operator reports both the tailnet IP and the ts.net name on a
+    # Service. Only A records are managed, so the name (which would become a
+    # CNAME that resolves nowhere outside the tailnet) is dropped.
+    managedRecordTypes:
+      - A
+    policy: sync
+    registry: txt
+    txtOwnerId: infra-v2
+    resources:
+      requests: { cpu: 10m, memory: 32Mi }
+      limits: { memory: 128Mi }

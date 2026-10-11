@@ -1,0 +1,53 @@
+# One Tailscale Service per access tier, each with its own tailnet IP
+# (svc:apps, svc:admin), both in front of Traefik. Who can reach which tier is
+# decided by grants on those svc: names in the tailnet policy.
+#
+# ExternalDNS publishes the hostnames listed on each Service as A records to
+# that tier's tailnet IP. A hostname moves in here when its IngressRoute moves
+# onto the tier's entrypoint.
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tailnet-apps
+  namespace: traefik
+  annotations:
+    tailscale.com/proxy-group: ingress
+    tailscale.com/hostname: apps
+    tailscale.com/tags: tag:k8-svc
+spec:
+  type: LoadBalancer
+  loadBalancerClass: tailscale
+  allocateLoadBalancerNodePorts: false
+  selector:
+    app.kubernetes.io/name: traefik
+    app.kubernetes.io/instance: traefik-traefik
+  ports:
+    - name: https
+      port: 443
+      targetPort: ts-apps
+    - name: p4d
+      port: 1666
+      targetPort: p4d
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tailnet-admin
+  namespace: traefik
+  annotations:
+    tailscale.com/proxy-group: ingress
+    tailscale.com/hostname: admin
+    tailscale.com/tags: tag:k8-svc
+    external-dns.alpha.kubernetes.io/hostname: renovate.davud.io
+spec:
+  type: LoadBalancer
+  loadBalancerClass: tailscale
+  allocateLoadBalancerNodePorts: false
+  selector:
+    app.kubernetes.io/name: traefik
+    app.kubernetes.io/instance: traefik-traefik
+  ports:
+    - name: https
+      port: 443
+      targetPort: ts-admin

@@ -1,0 +1,14 @@
+# Shared pool of Tailscale proxy pods. Every Service annotated with
+# `tailscale.com/proxy-group: ingress` becomes its own Tailscale Service
+# (svc:<hostname>) with its own tailnet IP, served by these pods. Access is
+# granted per svc: name in the tailnet policy, not per proxy device.
+---
+apiVersion: tailscale.com/v1alpha1
+kind: ProxyGroup
+metadata:
+  name: ingress
+spec:
+  type: ingress
+  replicas: 2
+  tags:
+    - tag:k8-cluster

@@ -9,7 +9,6 @@ metadata:
 spec:
   acme:
     server: https://acme-v02.api.letsencrypt.org/directory
-    # TODO: your email
     email: me@davud.io
     privateKeySecretRef:
       name: letsencrypt-prod-account-key
@@ -17,3 +16,22 @@ spec:
       - http01:
           ingress:
             ingressClassName: traefik
+---
+# DNS-01 through Cloudflare, for hostnames that are only reachable on the
+# tailnet (HTTP-01 can't validate those). Token secret is in ../base.
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-dns
+spec:
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory
+    email: me@davud.io
+    privateKeySecretRef:
+      name: letsencrypt-dns-account-key
+    solvers:
+      - dns01:
+          cloudflare:
+            apiTokenSecretRef:
+              name: cloudflare-api-token
+              key: api-token

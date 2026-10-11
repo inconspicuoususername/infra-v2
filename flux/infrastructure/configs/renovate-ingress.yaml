@@ -1,0 +1,35 @@
+# Renovate operator UI, tailnet-only (admin tier). The route exists on the
+# ts-admin entrypoint alone, so it is unreachable from the public VIP.
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: renovate-tls
+  namespace: renovate
+spec:
+  secretName: renovate-tls
+  issuerRef:
+    name: letsencrypt-dns          # not publicly reachable, so no HTTP-01
+    kind: ClusterIssuer
+  dnsNames:
+    - renovate.davud.io
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: renovate
+  namespace: renovate
+spec:
+  entryPoints:
+    - ts-admin
+  routes:
+    - match: Host(`renovate.davud.io`)
+      kind: Rule
+      services:
+        - name: renovate-operator-renovate-operator
+          port: 8081
+      middlewares:
+        - name: security-headers
+          namespace: traefik
+  tls:
+    secretName: renovate-tls

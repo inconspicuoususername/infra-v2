@@ -13,3 +13,5 @@ kind: Kustomization
 resources:
   - namespaces.yaml
   - renovate.secret.yaml
+  - tailscale.secret.yaml
+  - cloudflare.secret.yaml

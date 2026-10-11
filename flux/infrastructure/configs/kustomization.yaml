@@ -7,3 +7,6 @@ resources:
   - cluster-issuer.yaml
   - metallb-pool.yaml
   - renovatejob.yaml
+  - tailnet-proxygroup.yaml
+  - tailnet-services.yaml
+  - renovate-ingress.yaml
