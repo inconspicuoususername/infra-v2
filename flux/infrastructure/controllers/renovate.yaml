@@ -30,7 +30,9 @@ spec:
         clientId: "dejXhWXjF1oLAXtxMwNqa5NpZzpymBUvbkBx3Fhc"
         existingSecret: "renovate-secret"
         secretKey: "CLIENT_SECRET"
-        redirectScheme: "https"
+        # Explicit, because the chart only derives this from its own ingress,
+        # which is off (the route is ../configs/renovate-ingress.yaml).
+        redirectUrl: "https://renovate.davud.io/auth/callback"
     config:
       jobTTLSecondsAfterFinished: 259200 #3 day retention for jobs
     resources:
