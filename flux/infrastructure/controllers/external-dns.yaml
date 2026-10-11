@@ -9,7 +9,7 @@ spec:
   url: https://kubernetes-sigs.github.io/external-dns/
 ---
 # Publishes tailnet-only hostnames to Cloudflare: for every LoadBalancer
-# Service carrying an `external-dns.alpha.kubernetes.io/hostname` annotation
+# Service carrying an `external-dns.kubernetes.io/hostname` annotation
 # (see ../configs/tailnet-services.yaml) it keeps an A record pointing at the
 # Service's tailnet IP. It only ever touches records it created (tracked by
 # TXT ownership records), so the hand-made CNAME chains are left alone.
