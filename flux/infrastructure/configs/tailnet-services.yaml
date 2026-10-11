@@ -15,6 +15,7 @@ metadata:
     tailscale.com/proxy-group: ingress
     tailscale.com/hostname: apps
     tailscale.com/tags: tag:k8-svc
+    external-dns.kubernetes.io/hostname: plane.davud.io,auth.davud.io,perforce.davud.io
 spec:
   type: LoadBalancer
   loadBalancerClass: tailscale
@@ -39,7 +40,7 @@ metadata:
     tailscale.com/proxy-group: ingress
     tailscale.com/hostname: admin
     tailscale.com/tags: tag:k8-svc
-    external-dns.kubernetes.io/hostname: renovate.davud.io
+    external-dns.kubernetes.io/hostname: renovate.davud.io,registry.aquilla.dev
 spec:
   type: LoadBalancer
   loadBalancerClass: tailscale

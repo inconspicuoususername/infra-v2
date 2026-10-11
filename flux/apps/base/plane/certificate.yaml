@@ -6,7 +6,7 @@ metadata:
 spec:
   secretName: plane-tls # referenced by the chart's IngressRoute
   issuerRef:
-    name: letsencrypt-prod
+    name: letsencrypt-dns          # tailnet-only host, HTTP-01 can't reach it
     kind: ClusterIssuer
   dnsNames:
     - plane.davud.io

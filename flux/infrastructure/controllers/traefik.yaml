@@ -55,12 +55,13 @@ spec:
           tls:
             enabled: true
       # Custom TCP entrypoint for Perforce. Referenced by the IngressRouteTCP
-      # in apps/base/perforce. p4d does its own SSL, so this is pure passthrough.
+      # in apps/base/perforce, which terminates TLS here. Tailnet-only: not on
+      # the public Service, reached as port 1666 of the apps tier
+      # (../configs/tailnet-services.yaml).
       p4d:
         port: 1666
         expose:
-          default: true
-        exposedPort: 1666
+          default: false
         protocol: TCP
       # Tailnet-only entrypoints, one per access tier (apps: plane, authentik,
       # perforce; admin: registry, renovate). Not on the public Service: each

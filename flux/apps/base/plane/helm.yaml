@@ -58,6 +58,15 @@ spec:
   postRenderers:
     - kustomize:
         patches:
+          # Tailnet-only (apps tier). The chart hardcodes `websecure`.
+          - target:
+              kind: IngressRoute
+              name: plane-ingress
+            patch: |
+              - op: replace
+                path: /spec/entryPoints
+                value:
+                  - ts-apps
           - target:
               kind: Deployment
               name: plane-worker-wl
@@ -75,7 +84,7 @@ spec:
     planeVersion: v1.4.2
 
     ingress:
-      enabled: true                      # chart renders the Traefik IngressRoute (path routing per service)
+      enabled: true                      # chart renders the Traefik IngressRoute (path routing per service); entrypoint patched above
       appHost: plane.davud.io
       ingressClass: traefik
     ssl:

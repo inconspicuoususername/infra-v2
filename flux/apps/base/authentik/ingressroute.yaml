@@ -6,7 +6,7 @@ metadata:
   namespace: authentik
 spec:
   entryPoints:
-    - websecure
+    - ts-apps                   # tailnet-only, apps tier
   routes:
     - match: Host(`auth.davud.io`)
       kind: Rule

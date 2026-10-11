@@ -132,6 +132,16 @@ server.shell(
         # proto ipv4/IPIP between nodes; that's set in the Tailscale admin panel,
         # not here.)
         "firewall-cmd --permanent --zone=trusted --add-source=100.64.0.0/10",  # tailnet CGNAT
+        # The source trust above misses one case: traffic kube-proxy MASQUERADEs
+        # before sending it through the overlay (anything aimed at a
+        # LoadBalancer IP from a node or pod, incl. the tailnet tiers and image
+        # pulls from the registry). The tunnel is unnumbered, so MASQUERADE
+        # falls back to the node's LAN IP as source, which matches no trusted
+        # source. Trust the overlay tunnels themselves instead: they only
+        # decapsulate packets from the peer node's tailscale IP. They exist
+        # only once the node has peers, so re-run this after a node joins.
+        'for i in $(ls /sys/class/net | grep "^tun-"); do '
+        'firewall-cmd --permanent --zone=trusted --add-interface="$i"; done',
         # public services (ssh is already allowed by the default zone)
         "firewall-cmd --permanent --add-port=80/tcp",    # traefik http (ACME http-01 + redirect)
         "firewall-cmd --permanent --add-port=443/tcp",   # traefik https
