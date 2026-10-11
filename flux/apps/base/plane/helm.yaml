@@ -1,0 +1,75 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: plane
+  namespace: plane
+spec:
+  interval: 24h
+  url: https://helm.plane.so/
+---
+# Plane Community Edition (AGPL, no license server).
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: plane
+  namespace: plane
+spec:
+  interval: 1h
+  timeout: 15m                   # first install pulls ~7 images and runs every migration
+  chart:
+    spec:
+      chart: plane-ce
+      version: "1.8.4"
+      sourceRef:
+        kind: HelmRepository
+        name: plane
+  install:
+    remediation:
+      retries: 3
+  # Secrets are injected as values rather than via the chart's existingSecret
+  # hooks, which would each need the whole env set hand-maintained.
+  valuesFrom:
+    - kind: Secret
+      name: plane-db-app                 # CNPG-generated
+      valuesKey: uri
+      targetPath: env.pgdb_remote_url
+    - kind: Secret
+      name: plane-secret
+      valuesKey: SECRET_KEY
+      targetPath: env.secret_key
+    - kind: Secret
+      name: plane-secret
+      valuesKey: LIVE_SERVER_SECRET_KEY
+      targetPath: env.live_server_secret_key
+    - kind: Secret
+      name: plane-secret
+      valuesKey: MINIO_ROOT_PASSWORD
+      targetPath: minio.root_password
+    - kind: Secret
+      name: plane-secret
+      valuesKey: RABBITMQ_PASSWORD
+      targetPath: rabbitmq.default_password
+  values:
+    planeVersion: v1.4.2
+
+    ingress:
+      enabled: true                      # chart renders the Traefik IngressRoute (path routing per service)
+      appHost: plane.davud.io
+      ingressClass: traefik
+    ssl:
+      tls_secret_name: plane-tls         # from certificate.yaml; also switches the route to websecure
+
+    env:
+      requireExplicitSecrets: true       # never fall back to the chart's public example keys
+
+    postgres:
+      local_setup: false                 # CNPG instead, see postgres.yaml
+
+    redis:
+      storageClass: openebs-hostpath
+    rabbitmq:
+      storageClass: openebs-hostpath
+    minio:
+      storageClass: openebs-hostpath
+      volumeSize: 10Gi

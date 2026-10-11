@@ -1,0 +1,19 @@
+# Restrict ingress to the CNPG postgres pods to same-namespace (Plane's own
+# pods) + cnpg-system (the operator manages/health-checks instances directly).
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: plane-db-ingress
+  namespace: plane
+spec:
+  podSelector:
+    matchLabels:
+      cnpg.io/cluster: plane-db
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector: {}
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: cnpg-system

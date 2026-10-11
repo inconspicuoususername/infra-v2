@@ -1,0 +1,22 @@
+# CloudNativePG-managed Postgres for Plane, replacing the chart's bundled
+# postgres StatefulSet. No `backup:` block, same reason as everywhere else:
+# barman can't target the SFTP storage box.
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: plane-db
+  namespace: plane
+spec:
+  instances: 1
+  # Plane ships and tests against Postgres 15 (its chart bundles 15.7).
+  imageName: ghcr.io/cloudnative-pg/postgresql:15-system-trixie
+  storage:
+    size: 5Gi
+    storageClass: openebs-hostpath
+
+  # Generates the plane-db-app Secret; helm.yaml feeds its `uri` to the chart.
+  bootstrap:
+    initdb:
+      database: plane
+      owner: plane

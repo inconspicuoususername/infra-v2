@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: plane
+  labels:
+    # The plane-ce chart sets no securityContext on any workload, so restricted
+    # would reject every pod; baseline holds.
+    pod-security.kubernetes.io/enforce: baseline
+    pod-security.kubernetes.io/warn: restricted
+    pod-security.kubernetes.io/audit: restricted
+  annotations:
+    # Never garbage-collected by Flux: deleting a namespace cascades into PVCs
+    # and secrets. Tearing down the app must not take its data with it.
+    kustomize.toolkit.fluxcd.io/prune: disabled
