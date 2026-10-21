@@ -4,6 +4,7 @@ namespace: plane
 resources:
   - namespace.yaml
   - secret.yaml
+  - app-keys.secret.yaml
   - postgres.yaml
   - helm.yaml
   - certificate.yaml

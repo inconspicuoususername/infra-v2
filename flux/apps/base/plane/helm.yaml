@@ -8,7 +8,10 @@ spec:
   interval: 24h
   url: https://helm.plane.so/
 ---
-# Plane Community Edition (AGPL, no license server).
+# Plane Commercial Edition on the free plan (closed source, registers with
+# prime.plane.so). Migrated from plane-ce 1.8.4 / v1.4.2 on 2026-10-21; the
+# chart name change makes Flux uninstall + reinstall, and the StatefulSet PVCs
+# (same names in both charts) carry over.
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -16,19 +19,17 @@ metadata:
   namespace: plane
 spec:
   interval: 1h
-  timeout: 15m                   # first install pulls ~7 images and runs every migration
+  timeout: 15m
   chart:
     spec:
-      chart: plane-ce
-      version: "1.8.4"
+      chart: plane-enterprise
+      version: "3.10.12"
       sourceRef:
         kind: HelmRepository
         name: plane
   install:
     remediation:
       retries: 3
-  # Secrets are injected as values rather than via the chart's existingSecret
-  # hooks, which would each need the whole env set hand-maintained.
   valuesFrom:
     - kind: Secret
       name: plane-db-app                 # CNPG-generated
@@ -36,70 +37,35 @@ spec:
       targetPath: env.pgdb_remote_url
     - kind: Secret
       name: plane-secret
-      valuesKey: SECRET_KEY
-      targetPath: env.secret_key
-    - kind: Secret
-      name: plane-secret
-      valuesKey: LIVE_SERVER_SECRET_KEY
-      targetPath: env.live_server_secret_key
-    - kind: Secret
-      name: plane-secret
       valuesKey: MINIO_ROOT_PASSWORD
-      targetPath: minio.root_password
+      targetPath: services.minio.root_password
     - kind: Secret
       name: plane-secret
       valuesKey: RABBITMQ_PASSWORD
-      targetPath: rabbitmq.default_password
-  # Celery defaults its prefork pool to the node's core count (48 on safet),
-  # which blows through the 1000Mi limit at startup. The image's entrypoint
-  # takes no concurrency setting and the chart has no extra-env hook, so the
-  # command is replaced with the entrypoint's own steps plus --concurrency.
-  # Mirrors bin/docker-entrypoint-worker.sh; recheck it on Plane upgrades.
-  postRenderers:
-    - kustomize:
-        patches:
-          # Tailnet-only (apps tier). The chart hardcodes `websecure`.
-          - target:
-              kind: IngressRoute
-              name: plane-ingress
-            patch: |
-              - op: replace
-                path: /spec/entryPoints
-                value:
-                  - ts-apps
-          - target:
-              kind: Deployment
-              name: plane-worker-wl
-            patch: |
-              - op: replace
-                path: /spec/template/spec/containers/0/command
-                value:
-                  - /bin/bash
-                  - -c
-                  - >-
-                    python manage.py wait_for_db &&
-                    python manage.py wait_for_migrations &&
-                    exec celery -A plane worker -l info --concurrency=4
+      targetPath: services.rabbitmq.default_password
   values:
-    planeVersion: v1.4.2
+    planeVersion: v3.3.3
+
+    license:
+      licenseDomain: plane.davud.io      # also the IngressRoute host
 
     ingress:
-      enabled: true                      # chart renders the Traefik IngressRoute (path routing per service); entrypoint patched above
-      appHost: plane.davud.io
+      enabled: true
       ingressClass: traefik
+      traefik:
+        entryPoints: [ts-apps]           # tailnet-only (apps tier)
     ssl:
-      tls_secret_name: plane-tls         # from certificate.yaml; also switches the route to websecure
+      tls_secret_name: plane-tls         # from certificate.yaml
+
+    external_secrets:
+      app_keys_existingSecret: plane-app-keys
 
     env:
       requireExplicitSecrets: true       # never fall back to the chart's public example keys
+      storageClass: openebs-hostpath
 
-    postgres:
-      local_setup: false                 # CNPG instead, see postgres.yaml
-
-    redis:
-      storageClass: openebs-hostpath
-    rabbitmq:
-      storageClass: openebs-hostpath
-    minio:
-      storageClass: openebs-hostpath
-      volumeSize: 10Gi
+    services:
+      postgres:
+        local_setup: false               # CNPG instead, see postgres.yaml
+      minio:
+        volumeSize: 10Gi
