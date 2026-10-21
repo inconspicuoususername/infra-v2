@@ -3,6 +3,25 @@
 # (svc:<hostname>) with its own tailnet IP, served by these pods. Access is
 # granted per svc: name in the tailnet policy, not per proxy device.
 ---
+# Pod MTU is 1280 (the overlay rides tailscale0), so a 1280-byte packet in the
+# proxy's own tailscale0 plus ~80 bytes of WireGuard overhead can't leave the
+# pod unfragmented. That fragmented ~every packet and collapsed TCP to
+# ~200 KiB/s; a 1200 tun MTU (MSS gets clamped to it) gave ~40 MB/s.
+# TS_DEBUG_MTU is unsupported, but it's the workaround from upstream
+# tailscale/tailscale#16820 (closed "not planned"). If it ever stops being
+# honored, ingress throughput collapses again.
+apiVersion: tailscale.com/v1alpha1
+kind: ProxyClass
+metadata:
+  name: ingress
+spec:
+  statefulSet:
+    pod:
+      tailscaleContainer:
+        env:
+          - name: TS_DEBUG_MTU
+            value: "1200"
+---
 apiVersion: tailscale.com/v1alpha1
 kind: ProxyGroup
 metadata:
@@ -10,5 +29,6 @@ metadata:
 spec:
   type: ingress
   replicas: 2
+  proxyClass: ingress
   tags:
     - tag:k8-cluster
