@@ -26,7 +26,7 @@ dependencies {
     testImplementation(libs.org.junit.jupiter.junit.jupiter.engine)
 
     // Source: https://mvnrepository.com/artifact/io.fabric8/crd-generator-apt
-    implementation("io.fabric8:crd-generator-apt:7.8.0")
+    implementation("io.fabric8:crd-generator-apt:7.9.0")
 
     compileOnly("org.projectlombok:lombok:1.18.36")
     annotationProcessor("org.projectlombok:lombok:1.18.36")
