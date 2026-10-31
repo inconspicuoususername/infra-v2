@@ -9,3 +9,4 @@ resources:
   - helm.yaml
   - certificate.yaml
   - networkpolicy.yaml
+  - backup.yaml

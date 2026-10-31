@@ -1,0 +1,18 @@
+# The Hetzner Storage Box, as a borg target for `Backup` CRs (spec.target: storagebox).
+# The repo URL prefix lives in the borg-credentials Secret (BORG_REPO_PREFIX) so the
+# host stays out of git; each job's repo is <prefix>/<namespace>/<backup>/<job>.
+apiVersion: backup.davud.io/v1alpha1
+kind: BackupRepository
+metadata:
+  name: storagebox
+spec:
+  credentialsSecret:
+    name: borg-credentials
+    namespace: backup-system
+  imagePullSecret:
+    name: registry-pull
+    namespace: backup-system
+  retention:
+    keepDaily: 7
+    keepWeekly: 4
+    keepMonthly: 6

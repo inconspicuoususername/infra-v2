@@ -1,0 +1,10 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+# Deployed by Flux from flux/infrastructure/controllers. `make crds` and
+# `make image` rewrite crds.yaml and the tag below.
+resources:
+- crds.yaml
+- operator.yaml
+images:
+- name: registry.aquilla.dev/davud/backup-operator
+  newTag: 0.1.0

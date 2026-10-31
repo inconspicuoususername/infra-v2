@@ -12,3 +12,5 @@ resources:
   - renovate.yaml
   - tailscale-operator.yaml
   - external-dns.yaml
+  # Manifests live with the source; see backup-operator/deploy.
+  - ../../../backup-operator/deploy

@@ -15,3 +15,6 @@ resources:
   - renovate.secret.yaml
   - tailscale.secret.yaml
   - cloudflare.secret.yaml
+  # Source borg credentials + registry pull secret; the backup operator copies
+  # them into each namespace that has a Backup.
+  - backup.secret.yaml

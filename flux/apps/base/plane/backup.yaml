@@ -1,0 +1,23 @@
+# Nightly borg backups via the backup operator (see backup-operator/). Plane's
+# data lives only on safet's disk (openebs-hostpath), so this is its only copy.
+# Restoring the dump into PG 15 logs one harmless error: pg_dump 18 emits
+# `SET transaction_timeout`, which 15 doesn't know.
+apiVersion: backup.davud.io/v1alpha1
+kind: Backup
+metadata:
+  name: plane
+spec:
+  target: storagebox
+  jobs:
+    - name: db
+      type: postgresDump
+      schedule: "0 3 * * *"
+      postgres:
+        cnpgCluster: plane-db
+    # Attachments/uploads. minio writes world-readable files, so the default
+    # non-root UID can read them; .minio.sys is included for bucket metadata.
+    - name: minio
+      type: filesystem
+      schedule: "15 3 * * *"
+      filesystem:
+        pvc: pvc-plane-minio-vol-plane-minio-wl-0

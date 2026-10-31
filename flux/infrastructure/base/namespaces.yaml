@@ -63,3 +63,10 @@ metadata:
   name: external-dns
   labels:
     pod-security.kubernetes.io/enforce: restricted
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: backup-system
+  labels:
+    pod-security.kubernetes.io/enforce: restricted

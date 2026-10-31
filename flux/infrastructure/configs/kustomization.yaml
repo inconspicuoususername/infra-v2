@@ -10,3 +10,4 @@ resources:
   - tailnet-proxygroup.yaml
   - tailnet-services.yaml
   - renovate-ingress.yaml
+  - backup-repository.yaml
