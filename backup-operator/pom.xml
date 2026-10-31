@@ -16,7 +16,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <josdk.version>5.3.5</josdk.version>
         <!-- must match the fabric8 client JOSDK pulls in (mvn dependency:tree) -->
-        <fabric8-client.version>7.7.0</fabric8-client.version>
+        <fabric8-client.version>7.9.0</fabric8-client.version>
         <slf4j.version>2.0.17</slf4j.version>
         <log4j.version>2.25.4</log4j.version>
         <lombok.version>1.18.42</lombok.version>
