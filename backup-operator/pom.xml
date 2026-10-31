@@ -21,7 +21,7 @@
         <log4j.version>2.25.4</log4j.version>
         <lombok.version>1.18.42</lombok.version>
         <junit.version>5.9.2</junit.version>
-        <assertj.version>3.27.3</assertj.version>
+        <assertj.version>3.27.7</assertj.version>
         <image.repository>registry.aquilla.dev/davud/backup-operator</image.repository>
     </properties>
 
